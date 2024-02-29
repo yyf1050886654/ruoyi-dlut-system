@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dlut.mapper.AwardsMapper">
+    
+    <resultMap type="Awards" id="AwardsResult">
+        <result property="id"    column="id"    />
+        <result property="sort"    column="sort"    />
+        <result property="awardName"    column="awardName"    />
+        <result property="priceLevel"    column="priceLevel"    />
+        <result property="boolTemp"    column="boolTemp"    />
+        <result property="kind"    column="kind"    />
+        <result property="credit"    column="credit"    />
+        <result property="info"    column="info"    />
+    </resultMap>
+
+    <sql id="selectAwardsVo">
+        select id, sort, awardName, priceLevel, boolTemp, kind, credit, info from awards
+    </sql>
+
+    <select id="selectAwardsList" parameterType="Awards" resultMap="AwardsResult">
+        <include refid="selectAwardsVo"/>
+        <where>  
+            <if test="sort != null "> and sort = #{sort}</if>
+            <if test="awardName != null  and awardName != ''"> and awardName like concat('%', #{awardName}, '%')</if>
+            <if test="priceLevel != null "> and priceLevel = #{priceLevel}</if>
+            <if test="boolTemp != null "> and boolTemp = #{boolTemp}</if>
+            <if test="kind != null "> and kind = #{kind}</if>
+            <if test="credit != null "> and credit = #{credit}</if>
+            <if test="info != null  and info != ''"> and info = #{info}</if>
+        </where>
+    </select>
+    
+    <select id="selectAwardsById" parameterType="Long" resultMap="AwardsResult">
+        <include refid="selectAwardsVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertAwards" parameterType="Awards" useGeneratedKeys="true" keyProperty="id">
+        insert into awards
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sort != null">sort,</if>
+            <if test="awardName != null">awardName,</if>
+            <if test="priceLevel != null">priceLevel,</if>
+            <if test="boolTemp != null">boolTemp,</if>
+            <if test="kind != null">kind,</if>
+            <if test="credit != null">credit,</if>
+            <if test="info != null">info,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sort != null">#{sort},</if>
+            <if test="awardName != null">#{awardName},</if>
+            <if test="priceLevel != null">#{priceLevel},</if>
+            <if test="boolTemp != null">#{boolTemp},</if>
+            <if test="kind != null">#{kind},</if>
+            <if test="credit != null">#{credit},</if>
+            <if test="info != null">#{info},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAwards" parameterType="Awards">
+        update awards
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="awardName != null">awardName = #{awardName},</if>
+            <if test="priceLevel != null">priceLevel = #{priceLevel},</if>
+            <if test="boolTemp != null">boolTemp = #{boolTemp},</if>
+            <if test="kind != null">kind = #{kind},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="info != null">info = #{info},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAwardsById" parameterType="Long">
+        delete from awards where id = #{id}
+    </delete>
+
+    <delete id="deleteAwardsByIds" parameterType="String">
+        delete from awards where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
