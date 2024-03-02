@@ -4,6 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.ruoyi.common.annotation.DataSource;
 import com.ruoyi.common.enums.DataSourceType;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.dlut.entity.PageResult;
 import com.ruoyi.dlut.entity.QueryPageBean;
 import com.ruoyi.dlut.mapper.AwardDao;
@@ -32,8 +33,7 @@ public class TeacherAwardsServiceImpl implements TeacherAwardsService {
     private AwardDao awardDao;
     @Autowired
     private TeacherDao teacherDao;
-    /*@Autowired
-    private JedisPool jedisPool;*/
+
     @Override
     public PageResult findPage(QueryPageBean queryPageBean, int sort, int teacherUid) throws UnsupportedEncodingException {
         Integer currentPage = queryPageBean.getCurrentPage();
@@ -56,6 +56,9 @@ public class TeacherAwardsServiceImpl implements TeacherAwardsService {
 
     @Override
     public PageResult findPage4All(QueryPageBean queryPageBean, int sort) throws UnsupportedEncodingException {
+        if (!checkPermission(sort)){
+            return null;
+        }
         Integer currentPage = queryPageBean.getCurrentPage();
         Integer pageSize = queryPageBean.getPageSize();
         String queryString = queryPageBean.getQueryString();//ThreadLocal
@@ -174,12 +177,10 @@ public class TeacherAwardsServiceImpl implements TeacherAwardsService {
     public void edit(TeacherAwards awards) {
         teacherAwardDao.edit(awards);
     }
+
+    public boolean checkPermission(Integer sort){
+        String permission = "manage:"+sort+":all";
+        return SecurityUtils.hasPermi(permission);
+    }
 }
 
-    /*private void savePic2Redis(String pic){
-        jedisPool.getResource().sadd(RedisConstant.UPLOAD_ZIP_DB_RESOURCES,pic);
-    }
-    private void deletePic2Redis(String pic){
-        jedisPool.getResource().srem(RedisConstant.UPLOAD_ZIP_DB_RESOURCES,pic);
-    }
-}*/

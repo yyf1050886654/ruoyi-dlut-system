@@ -56,7 +56,7 @@
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2018-2023 ruoyi.vip All Rights Reserved.</span>
+      <span>Copyright © 2018-2023 Dalian University of Technology All Rights Reserved.</span>
     </div>
   </div>
 </template>
@@ -161,7 +161,9 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-image: url("../assets/images/login-background.jpg");
+  //background-image: url("../assets/images/login-background.jpg");
+  /* 渐变背景 */
+  background: linear-gradient(200deg,#0abdfe, #506989);
   background-size: cover;
 }
 .title {

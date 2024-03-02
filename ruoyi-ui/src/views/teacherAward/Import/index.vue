@@ -2,12 +2,156 @@
   <div class="app-container">
     <div class="box">
       <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
-        <el-tab-pane label="教学评价" name="1">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog1_1 = true;addTableActiveName='1';handleClick4Add();">获奖申报</el-button>
-          <el-button type="primary" plain @click="button='2';resetForm();addTableActiveName='4';dialog1_2 = true;handleClick4Add();">项目申报</el-button>
-          <el-button type="primary" plain @click="button='3';resetForm();addTableActiveName='5';dialog1_3 = true;handleClick4Add();">论文教材</el-button>
-          <el-button type="primary" plain @click="button='4';resetForm();dialog1_4 = true;addTableActiveName='7';handleClick4Add();">其他申报</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
+        <el-tab-pane label="教学评价" name="1" v-if="checkPermi(['manage:1:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='1';resetForm();dialog1_1 = true;addTableActiveName='1';handleClick4Add();"
+                         v-hasPermi="['dlut:awards:add']"
+                         size="mini"
+              >获奖申报</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='2';resetForm();addTableActiveName='4';dialog1_2 = true;handleClick4Add();"
+                         v-hasPermi="['dlut:awards:add']"
+                         size="mini"
+              >项目申报</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='3';resetForm();addTableActiveName='5';dialog1_3 = true;handleClick4Add();"
+                         v-hasPermi="['dlut:awards:add']"
+                         size="mini"
+              >论文教材</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='4';resetForm();dialog1_4 = true;addTableActiveName='7';handleClick4Add();"
+                         v-hasPermi="['dlut:awards:add']"
+                         size="mini"
+              >其他申报</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         v-hasPermi="['dlut:awards:delete']"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
+
+          <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
+            <el-table-column type="selection" label="序号"></el-table-column>
+            <el-table-column type="index" align="center" label="序号"></el-table-column>
+            <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
+            <el-table-column prop="awards.awardName" label="项目" align="center"></el-table-column>
+            <el-table-column label="奖项" align="center">
+              <template slot-scope="scope">
+                                <span>{{ scope.row.awards.priceLevel == '0' ? '特等奖' :
+                                  scope.row.awards.priceLevel == '1' ? '一等奖' :
+                                    scope.row.awards.priceLevel == '2' ? '二等奖' :
+                                      scope.row.awards.priceLevel == '3' ? '三等奖' :
+                                        scope.row.awards.priceLevel == '4' ? '优秀奖' :'不区分奖项'}}
+
+                                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
+            <el-table-column label="种类" align="center">
+              <template slot-scope="scope">
+                                <span>{{ scope.row.awards.kind == '1' ? '教学获奖' :
+                                  scope.row.awards.kind == '2' ? '教学类竞赛获奖' :
+                                    scope.row.awards.kind == '3' ? '指导学生竞赛' :
+                                      scope.row.awards.kind == '4' ? '教学项目' :
+                                        scope.row.awards.kind == '5' ? '教材' :
+                                          scope.row.awards.kind == '6' ? '教学研究论文' :'承担课程'}}
+                                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="projectName" label="项目名称" align="center"></el-table-column>
+            <el-table-column prop="weight" label="调整系数" align="center"></el-table-column>
+            <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
+            <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
+            <el-table-column prop="endDate" label="结束日期" align="center"></el-table-column>
+            <el-table-column prop="info" label="备注" align="center"></el-table-column>
+            <el-table-column label="编辑/删除" align="center">
+              <template slot-scope="scope">
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="pagination-container">
+            <el-pagination
+              class="pagiantion"
+              @current-change="handleCurrentChange"
+              :current-page="pagination.currentPage"
+              :page-size="pagination.pageSize"
+              layout="total, prev, pager, next, jumper"
+              :total="pagination.total">
+            </el-pagination>
+          </div>
           <!-- 获奖情况申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog1_1">
@@ -870,10 +1014,107 @@
 
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
+        </el-tab-pane>
+        <el-tab-pane label="科研评价" name="2" v-if="checkPermi(['manage:2:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain @click="button='1';resetForm();dialog2_1 = true;addTableActiveName='1';handleClick4Add();"
+                         size="mini"
+              >获奖申报</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='2';resetForm();addTableActiveName='2';dialog2_2 = true;handleClick4Add();"
+                         size="mini"
+              >项目申报</el-button>
+
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='3';resetForm();addTableActiveName='8';dialog2_3 = true;handleClick4Add();"
+                         size="mini"
+              >论文教材</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='4';resetForm();dialog2_4 = true;addTableActiveName='10';handleClick4Add();"
+                         size="mini"
+              >其他申报</el-button>
+
+            </el-col>
+            <el-col :span="1.5">
+
+              <el-button type="danger" plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -893,12 +1134,18 @@
             <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
             <el-table-column label="种类" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '教学获奖' :
-                                  scope.row.awards.kind == '2' ? '教学类竞赛获奖' :
-                                    scope.row.awards.kind == '3' ? '指导学生竞赛' :
-                                      scope.row.awards.kind == '4' ? '教学项目' :
-                                        scope.row.awards.kind == '5' ? '教材' :
-                                          scope.row.awards.kind == '6' ? '教学研究论文' :'承担课程'}}
+                                <span>{{ scope.row.awards.kind == '1' ? '科研获奖' :
+                                  scope.row.awards.kind == '2' ? '一般项目' :
+                                    scope.row.awards.kind == '3' ? '重大类项目' :
+                                      scope.row.awards.kind == '4' ? '重点类项目' :
+                                        scope.row.awards.kind == '5' ? '基金项目' :
+                                          scope.row.awards.kind == '6' ? '成果转化项目' :
+                                            scope.row.awards.kind == '7' ? '其他项目' :
+                                              scope.row.awards.kind == '8' ? '科研论文' :
+                                                scope.row.awards.kind == '9' ? '著作' :
+                                                  scope.row.awards.kind == '10' ? '发明专利' :
+                                                    scope.row.awards.kind == '11' ? '鉴定' :
+                                                      scope.row.awards.kind == '12' ? '标准规范' :'资政建言'}}
                                 </span>
               </template>
             </el-table-column>
@@ -907,11 +1154,12 @@
             <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
             <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
             <el-table-column prop="endDate" label="结束日期" align="center"></el-table-column>
-            <el-table-column prop="info" label="备注" align="center"></el-table-column>
+            <el-table-column prop="info" label="备注/详情" align="center"></el-table-column>
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
+                <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -925,13 +1173,6 @@
               :total="pagination.total">
             </el-pagination>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="科研评价" name="2">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog2_1 = true;addTableActiveName='1';handleClick4Add();">获奖申报</el-button>
-          <el-button type="primary" plain @click="button='2';resetForm();addTableActiveName='2';dialog2_2 = true;handleClick4Add();">项目申报</el-button>
-          <el-button type="primary" plain @click="button='3';resetForm();addTableActiveName='8';dialog2_3 = true;handleClick4Add();">论文教材</el-button>
-          <el-button type="primary" plain @click="button='4';resetForm();dialog2_4 = true;addTableActiveName='10';handleClick4Add();">其他申报</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
           <!-- 获奖情况申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog2_1">
@@ -2237,10 +2478,93 @@
 
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
+        </el-tab-pane>
+        <el-tab-pane label="人才荣誉" name="3" v-if="checkPermi(['manage:3:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='1';resetForm();dialog3_1 = true;addTableActiveName='1';handleClick4Add();"
+                         size="mini"
+              >人才荣誉</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='2';resetForm();addTableActiveName='2';dialog3_2 = true;handleClick4Add();"
+                         size="mini"
+              >人才引进</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
+
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -2260,22 +2584,11 @@
             <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
             <el-table-column label="种类" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '科研获奖' :
-                                  scope.row.awards.kind == '2' ? '一般项目' :
-                                    scope.row.awards.kind == '3' ? '重大类项目' :
-                                      scope.row.awards.kind == '4' ? '重点类项目' :
-                                        scope.row.awards.kind == '5' ? '基金项目' :
-                                          scope.row.awards.kind == '6' ? '成果转化项目' :
-                                            scope.row.awards.kind == '7' ? '其他项目' :
-                                              scope.row.awards.kind == '8' ? '科研论文' :
-                                                scope.row.awards.kind == '9' ? '著作' :
-                                                  scope.row.awards.kind == '10' ? '发明专利' :
-                                                    scope.row.awards.kind == '11' ? '鉴定' :
-                                                      scope.row.awards.kind == '12' ? '标准规范' :'资政建言'}}
+                                <span>{{ scope.row.awards.kind == '1' ? '一般荣誉' :
+                                  scope.row.awards.kind == '2' ? '人才引进荣誉' :'党建及其他荣誉'}}
                                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="projectName" label="项目名称" align="center"></el-table-column>
             <el-table-column prop="weight" label="调整系数" align="center"></el-table-column>
             <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
             <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
@@ -2284,8 +2597,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -2299,11 +2612,6 @@
               :total="pagination.total">
             </el-pagination>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="人才荣誉" name="3">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog3_1 = true;addTableActiveName='1';handleClick4Add();">人才荣誉</el-button>
-          <el-button type="primary" plain @click="button='2';resetForm();addTableActiveName='2';dialog3_2 = true;handleClick4Add();">人才引进</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
           <!-- 获奖情况申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog3_1">
@@ -2653,22 +2961,105 @@
               </div>
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
+        </el-tab-pane>
+        <el-tab-pane label="平台团队" name="4" v-if="checkPermi(['manage:4:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='1';resetForm();dialog4_1 = true;addTableActiveName='1';handleClick4Add();"
+                         size="mini"
+              >科研平台</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='2';resetForm();addTableActiveName='3';dialog4_2 = true;handleClick4Add();"
+                         size="mini"
+              >教学类平台</el-button>
+
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
+
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
             <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
             <el-table-column prop="awards.awardName" label="项目" align="center"></el-table-column>
-            <el-table-column label="奖项" align="center">
+            <el-table-column label="平台等级" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.priceLevel == '0' ? '特等奖' :
-                                  scope.row.awards.priceLevel == '1' ? '一等奖' :
-                                    scope.row.awards.priceLevel == '2' ? '二等奖' :
-                                      scope.row.awards.priceLevel == '3' ? '三等奖' :
-                                        scope.row.awards.priceLevel == '4' ? '优秀奖' :'不区分奖项'}}
+                                <span>{{ scope.row.awards.priceLevel == '0' ? '国家级' :
+                                  scope.row.awards.priceLevel == '1' ? '部委级' :
+                                    scope.row.awards.priceLevel == '2' ? '省级' :
+                                      scope.row.awards.priceLevel == '3' ? '市级' :'不区分'}}
 
                                 </span>
               </template>
@@ -2676,11 +3067,12 @@
             <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
             <el-table-column label="种类" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '一般荣誉' :
-                                  scope.row.awards.kind == '2' ? '人才引进荣誉' :'党建及其他荣誉'}}
+                                <span>{{ scope.row.awards.kind == '1' ? '科研平台' :
+                                  scope.row.awards.kind == '2' ? '科研团队' :'教学类平台'}}
                                 </span>
               </template>
             </el-table-column>
+            <el-table-column prop="projectName" label="项目名称" align="center"></el-table-column>
             <el-table-column prop="weight" label="调整系数" align="center"></el-table-column>
             <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
             <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
@@ -2689,8 +3081,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -2704,11 +3096,6 @@
               :total="pagination.total">
             </el-pagination>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="平台团队" name="4">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog4_1 = true;addTableActiveName='1';handleClick4Add();">科研平台</el-button>
-          <el-button type="primary" plain @click="button='2';resetForm();addTableActiveName='3';dialog4_2 = true;handleClick4Add();">教学类平台</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
           <!-- 获奖情况申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog4_1">
@@ -3108,34 +3495,110 @@
 
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
+        </el-tab-pane>
+        <el-tab-pane label="国际化" name="5" v-if="checkPermi(['manage:5:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='1';resetForm();dialog5_1 = true;addTableActiveName='1';handleClick4Add();"
+                         size="mini"
+              >国际化</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='2';resetForm();addTableActiveName='3';dialog5_2 = true;handleClick4Add();"
+                         size="mini"
+              >国际学术会议</el-button>
+
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
+
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
             <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
-            <el-table-column prop="awards.awardName" label="项目" align="center"></el-table-column>
-            <el-table-column label="平台等级" align="center">
+            <el-table-column prop="awards.awardName" label="奖项" align="center"></el-table-column>
+            <el-table-column prop="projectName" label="项目名称/比赛名称" align="center"></el-table-column>
+            <el-table-column label="种类" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.priceLevel == '0' ? '国家级' :
-                                  scope.row.awards.priceLevel == '1' ? '部委级' :
-                                    scope.row.awards.priceLevel == '2' ? '省级' :
-                                      scope.row.awards.priceLevel == '3' ? '市级' :'不区分'}}
-
+                                <span>{{ scope.row.awards.kind == '1' ? '国际人才培养项目' :
+                                  scope.row.awards.kind == '2' ? '国际级比赛' :
+                                    scope.row.awards.kind == '3' ? '国际学术会议' :'海外科研合作'}}
                                 </span>
               </template>
             </el-table-column>
             <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
-            <el-table-column label="种类" align="center">
-              <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '科研平台' :
-                                  scope.row.awards.kind == '2' ? '科研团队' :'教学类平台'}}
-                                </span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="projectName" label="项目名称" align="center"></el-table-column>
             <el-table-column prop="weight" label="调整系数" align="center"></el-table-column>
             <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
             <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
@@ -3144,8 +3607,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -3159,11 +3622,6 @@
               :total="pagination.total">
             </el-pagination>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="国际化" name="5">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog5_1 = true;addTableActiveName='1';handleClick4Add();">国际化</el-button>
-          <el-button type="primary" plain @click="button='2';resetForm();addTableActiveName='3';dialog5_2 = true;handleClick4Add();">国际学术会议</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
           <!-- 获奖情况申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog5_1">
@@ -3639,35 +4097,130 @@
 
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
+        </el-tab-pane>
+        <el-tab-pane label="学术兼职" name="6" v-if="checkPermi(['manage:6:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='1';resetForm();dialog6_1 = true;addTableActiveName='1';handleClick4Add();"
+                         size="mini"
+              >兼职申报</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
             <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
-            <el-table-column prop="awards.awardName" label="奖项" align="center"></el-table-column>
-            <el-table-column prop="projectName" label="项目名称/比赛名称" align="center"></el-table-column>
-            <el-table-column label="种类" align="center">
+            <el-table-column prop="awards.awardName" label="兼职单位" align="center"></el-table-column>
+
+            <el-table-column label="职位" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '国际人才培养项目' :
-                                  scope.row.awards.kind == '2' ? '国际级比赛' :
-                                    scope.row.awards.kind == '3' ? '国际学术会议' :'海外科研合作'}}
+                                <span>{{
+                                    (scope.row.awards.kind == 1 || scope.row.awards.kind == 2)?(
+                                      scope.row.awards.priceLevel == '1' ? '主任' :
+                                        scope.row.awards.priceLevel == '2' ? '副主任' :
+                                          scope.row.awards.priceLevel == '3' ? '秘书长' :
+                                            scope.row.awards.priceLevel == '4' ? '委员' :
+                                              scope.row.awards.priceLevel == '5' ? '成员' :
+                                                scope.row.awards.priceLevel == '6' ? '组长' :
+                                                  scope.row.awards.priceLevel == '7' ? '副组长' :'专家'):(
+                                      scope.row.awards.priceLevel == '1' ? '理事长' :
+                                        scope.row.awards.priceLevel == '2' ? '副理事长' :
+                                          scope.row.awards.priceLevel == '3' ? '监事长' :
+                                            scope.row.awards.priceLevel == '4' ? '常务理事' :
+                                              scope.row.awards.priceLevel == '5' ? '秘书长' :
+                                                scope.row.awards.priceLevel == '6' ? '主编' :'副主编'
+                                    )
+                                  }}
                                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
-            <el-table-column prop="weight" label="调整系数" align="center"></el-table-column>
+            <el-table-column label="种类" align="center">
+              <template slot-scope="scope">
+                                <span>{{ scope.row.awards.kind == '1' ? '教学指导兼职' :
+                                  scope.row.awards.kind == '2' ? '重大项目兼职' : '学术学会兼职'}}
+                                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="beginDate" label="开始时间" align="center"></el-table-column>
+            <el-table-column prop="endDate" label="结束时间" align="center"></el-table-column>
             <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
-            <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
-            <el-table-column prop="endDate" label="结束日期" align="center"></el-table-column>
-            <el-table-column prop="info" label="备注/详情" align="center"></el-table-column>
+            <el-table-column prop="info" label="备注" align="center"></el-table-column>
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -3681,10 +4234,6 @@
               :total="pagination.total">
             </el-pagination>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="学术兼职" name="6">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog6_1 = true;addTableActiveName='1';handleClick4Add();">兼职申报</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
           <!-- 人才培养事故申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog6_1">
@@ -4038,54 +4587,106 @@
 
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
+        </el-tab-pane>
+        <el-tab-pane label="人才培养质量" name="7" v-if="checkPermi(['manage:7:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="button='1';resetForm();dialog7_1 = true;addTableActiveName='1';handleClick4Add();"
+                         size="mini"
+              >事故申报</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
             <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
-            <el-table-column prop="awards.awardName" label="兼职单位" align="center"></el-table-column>
-
-            <el-table-column label="职位" align="center">
-              <template slot-scope="scope">
-                                <span>{{
-                                    (scope.row.awards.kind == 1 || scope.row.awards.kind == 2)?(
-                                      scope.row.awards.priceLevel == '1' ? '主任' :
-                                        scope.row.awards.priceLevel == '2' ? '副主任' :
-                                          scope.row.awards.priceLevel == '3' ? '秘书长' :
-                                            scope.row.awards.priceLevel == '4' ? '委员' :
-                                              scope.row.awards.priceLevel == '5' ? '成员' :
-                                                scope.row.awards.priceLevel == '6' ? '组长' :
-                                                  scope.row.awards.priceLevel == '7' ? '副组长' :'专家'):(
-                                      scope.row.awards.priceLevel == '1' ? '理事长' :
-                                        scope.row.awards.priceLevel == '2' ? '副理事长' :
-                                          scope.row.awards.priceLevel == '3' ? '监事长' :
-                                            scope.row.awards.priceLevel == '4' ? '常务理事' :
-                                              scope.row.awards.priceLevel == '5' ? '秘书长' :
-                                                scope.row.awards.priceLevel == '6' ? '主编' :'副主编'
-                                    )
-                                  }}
-                                </span>
-              </template>
-            </el-table-column>
+            <el-table-column prop="awards.awardName" label="事故类型" align="center"></el-table-column>
+            <el-table-column prop="beginDate" label="发生时间" align="center"></el-table-column>
             <el-table-column label="种类" align="center">
               <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '教学指导兼职' :
-                                  scope.row.awards.kind == '2' ? '重大项目兼职' : '学术学会兼职'}}
+                                <span>{{ scope.row.awards.kind == '1' ? '硕士培养事故' :
+                                  scope.row.awards.kind == '2' ? '博士培养事故' : '其他教学事故'}}
                                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="beginDate" label="开始时间" align="center"></el-table-column>
-            <el-table-column prop="endDate" label="结束时间" align="center"></el-table-column>
             <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
             <el-table-column prop="info" label="备注" align="center"></el-table-column>
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete1(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -4099,10 +4700,6 @@
               :total="pagination.total">
             </el-pagination>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="人才培养质量" name="7">
-          <el-button type="primary" plain @click="button='1';resetForm();dialog7_1 = true;addTableActiveName='1';handleClick4Add();">事故申报</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
           <!-- 人才培养事故申报登记表单 -->
           <div class="add-form">
             <el-dialog title="申报" :visible.sync="dialog7_1">
@@ -4377,44 +4974,6 @@
 
             </el-dialog>
           </div>
-          <div class="filter-container">
-            <el-input placeholder="项目名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-          </div>
-          <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
-            <el-table-column type="selection" label="序号"></el-table-column>
-            <el-table-column type="index" align="center" label="序号"></el-table-column>
-            <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
-            <el-table-column prop="awards.awardName" label="事故类型" align="center"></el-table-column>
-            <el-table-column prop="beginDate" label="发生时间" align="center"></el-table-column>
-            <el-table-column label="种类" align="center">
-              <template slot-scope="scope">
-                                <span>{{ scope.row.awards.kind == '1' ? '硕士培养事故' :
-                                  scope.row.awards.kind == '2' ? '博士培养事故' : '其他教学事故'}}
-                                </span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
-            <el-table-column prop="info" label="备注" align="center"></el-table-column>
-            <el-table-column label="编辑/删除" align="center">
-              <template slot-scope="scope">
-                <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete1(scope.row)"></el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div class="pagination-container">
-            <el-pagination
-              class="pagiantion"
-              @current-change="handleCurrentChange"
-              :current-page="pagination.currentPage"
-              :page-size="pagination.pageSize"
-              layout="total, prev, pager, next, jumper"
-              :total="pagination.total">
-            </el-pagination>
-          </div>
-
 
         </el-tab-pane>
       </el-tabs>
@@ -4497,6 +5056,7 @@ import {
   getInfo
 } from "@/api/teacherAward/Import/Import";
 import {findByKind, findByKindUnique} from "@/api/dlut/awards";
+import {checkPermi} from "@/utils/permission";
 
 export default {
   name: "Teacher",
@@ -4578,7 +5138,13 @@ export default {
       ids:[],
       teachers:[],
       credits:[],
-      boolTemp:false
+      boolTemp:false,
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10
+      },
+      // 显示搜索条件
+      showSearch: true
     };
   },
   created() {
@@ -4588,6 +5154,8 @@ export default {
     });
   },
   methods: {
+    checkPermi,
+
     handleBulkDelete() {
       //传数组进行批量删除
       this.$confirm('你确定要批量删除当前数据吗？','提示',{

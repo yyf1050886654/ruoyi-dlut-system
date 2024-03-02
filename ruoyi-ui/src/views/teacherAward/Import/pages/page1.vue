@@ -1,0 +1,1483 @@
+<template>
+  <div class="singleImportPage1">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="教师姓名" prop="awardName">
+        <el-input
+          v-model="queryParams.awardName"
+          placeholder="请输入教师姓名"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="奖项名称" prop="awardName">
+        <el-input
+          v-model="queryParams.awardName"
+          placeholder="请输入奖项名称"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="奖项级别" prop="priceLevel">
+        <el-select
+          v-model="queryParams.priceLevel"
+          placeholder="奖项级别"
+          clearable
+          style="width: 240px"
+        >
+<!--          <el-option
+            v-for="dict in dict.type.sys_normal_disable"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />-->
+        </el-select>
+      </el-form-item>
+      <el-form-item label="年度">
+        <el-date-picker
+          v-model="queryParams.dateRange"
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </el-form-item>
+      <el-form-item label="创建时间">
+        <el-date-picker
+          v-model="queryParams.dateRange"
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button type="primary"
+                   plain
+                   @click="button='1';resetForm();dialog1_1 = true;addTableActiveName='1';handleClick4Add();"
+                   v-hasPermi="['dlut:awards:add']"
+                   size="mini"
+        >获奖申报</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary"
+                   plain
+                   @click="button='2';resetForm();addTableActiveName='4';dialog1_2 = true;handleClick4Add();"
+                   v-hasPermi="['dlut:awards:add']"
+                   size="mini"
+        >项目申报</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary"
+                   plain
+                   @click="button='3';resetForm();addTableActiveName='5';dialog1_3 = true;handleClick4Add();"
+                   v-hasPermi="['dlut:awards:add']"
+                   size="mini"
+        >论文教材</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary"
+                   plain
+                   @click="button='4';resetForm();dialog1_4 = true;addTableActiveName='7';handleClick4Add();"
+                   v-hasPermi="['dlut:awards:add']"
+                   size="mini"
+        >其他申报</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger"
+                   plain
+                   icon="el-icon-delete"
+                   @click="handleBulkDelete()"
+                   v-hasPermi="['dlut:awards:delete']"
+                   size="mini"
+        >批量删除</el-button>
+      </el-col>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+    </el-row>
+    <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
+      <el-table-column type="selection" label="序号"></el-table-column>
+      <el-table-column type="index" align="center" label="序号"></el-table-column>
+      <el-table-column prop="teacher.name" label="教师姓名" align="center"></el-table-column>
+      <el-table-column prop="awards.awardName" label="项目" align="center"></el-table-column>
+      <el-table-column label="奖项" align="center">
+        <template slot-scope="scope">
+                                <span>{{ scope.row.awards.priceLevel == '0' ? '特等奖' :
+                                  scope.row.awards.priceLevel == '1' ? '一等奖' :
+                                    scope.row.awards.priceLevel == '2' ? '二等奖' :
+                                      scope.row.awards.priceLevel == '3' ? '三等奖' :
+                                        scope.row.awards.priceLevel == '4' ? '优秀奖' :'不区分奖项'}}
+
+                                </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="rankPosition" label="排位折分系数" align="center"></el-table-column>
+      <el-table-column label="种类" align="center">
+        <template slot-scope="scope">
+                                <span>{{ scope.row.awards.kind == '1' ? '教学获奖' :
+                                  scope.row.awards.kind == '2' ? '教学类竞赛获奖' :
+                                    scope.row.awards.kind == '3' ? '指导学生竞赛' :
+                                      scope.row.awards.kind == '4' ? '教学项目' :
+                                        scope.row.awards.kind == '5' ? '教材' :
+                                          scope.row.awards.kind == '6' ? '教学研究论文' :'承担课程'}}
+                                </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="projectName" label="项目名称" align="center"></el-table-column>
+      <el-table-column prop="weight" label="调整系数" align="center"></el-table-column>
+      <el-table-column prop="realCredit" label="业绩积分" align="center"></el-table-column>
+      <el-table-column prop="beginDate" label="开始日期" align="center"></el-table-column>
+      <el-table-column prop="endDate" label="结束日期" align="center"></el-table-column>
+      <el-table-column prop="info" label="备注" align="center"></el-table-column>
+      <el-table-column label="编辑/删除" align="center" class-name="small-padding fixed-width">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row)"
+            v-hasPermi="['dlut:awards:edit']"
+          >修改</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-delete"
+            @click="handleDelete1(scope.row)"
+            v-hasPermi="['dlut:awards:remove']"
+          >删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="pagination-container">
+      <el-pagination
+        class="pagiantion"
+        @current-change="handleCurrentChange"
+        :current-page="pagination.currentPage"
+        :page-size="pagination.pageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="pagination.total">
+      </el-pagination>
+    </div>
+
+
+    <!-- 获奖情况申报登记表单 -->
+    <div class="add-form">
+      <el-dialog title="申报" :visible.sync="dialog1_1">
+        <el-divider content-position="left">
+          <span style="color: #3c8dbc;font-weight: bold;font-size: 20px">奖项情况</span>
+          <el-tooltip placement="top">
+            <div slot="content" v-html="infoText"></div>
+            <span class="help" style="color: #3c8dbc"><i class="fa fa-exclamation-circle" aria-hidden="true"></i>详情</span>
+          </el-tooltip>
+        </el-divider>
+        <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+          <el-tabs v-model="addTableActiveName" @tab-click="handleClick4Add">
+            <el-tab-pane label="教学获奖" name="1">
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="获得奖项">
+                    <el-select v-model="selectedAward.awardName" filterable placeholder="请选择">
+                      <el-option
+                        v-for="item in awardList4Show"
+                        :label="item"
+                        :value="item">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <!--<el-form-item label="奖项级别" prop="id">-->
+                  <el-form-item label="奖项级别" >
+                    <el-select v-model="selectedAward.priceLevel" filterable placeholder="请选择">
+                      <el-option label="特等奖" value="0"></el-option>
+                      <el-option label="一等奖" value="1"></el-option>
+                      <el-option label="二等奖" value="2"></el-option>
+                      <el-option label="三等奖" value="3"></el-option>
+                      <el-option label="优秀奖" value="4"></el-option>
+                      <el-option label="不区分" value="5"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24" >
+                  <el-form-item label="详情">
+                    <el-form class="base-form" ref="baseForm" :model="baseForm" :rules="rules" auto-complete="on">
+                      <el-table ref="table-input" class="table" :data="baseForm.demoList">
+                        <el-table-column label="姓名" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.teacherUid'"  class="all">
+                              <el-select v-model="scope.row.teacherUid" filterable placeholder="请选择">
+                                <el-option
+                                  v-for="(item,index) in allTeacher"
+                                  :label="item.name"
+                                  :value="item.uid">
+                                </el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="第几完成人" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.rankPosition'" class="all">
+                              <el-select v-model="scope.row.rankPosition" filterable placeholder="请选择">
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第一完成人" value="1" key="1"></el-option>
+                                <el-option v-else-if="addAwardId === 15||addAwardId === 16" label="第一完成人" value="1" key="1"></el-option>
+
+
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第二完成人" value="0.7" key="2"></el-option>
+                                <el-option v-else-if="addAwardId === 15||addAwardId === 16" label="第二完成人" value="0.3" key=2"></el-option>
+
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第三完成人" value="0.5" key="3"></el-option>
+                                <el-option v-else-if="addAwardId === 15||addAwardId === 16" label="第三完成人" value="0.2" key="3"></el-option>
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第四完成人" value="0.3" key="4"></el-option>
+                                <el-option v-else-if="addAwardId === 15||addAwardId === 16" label="第四完成人" value="0.1" key="4"></el-option>
+
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第五，六完成人" value="0.2" key="5"></el-option>
+                                <el-option v-else-if="addAwardId === 15||addAwardId === 16" label="第五到十完成人" value="0.05" key="5"></el-option>
+
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第七到十完成人" value="0.1" key="6"></el-option>
+
+                                <el-option v-if="addAwardId !== 15 && addAwardId !== 16" label="第十及以后完成人" value="0.05" key="7"></el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="分数" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.credit'" class="all">
+                              <el-input placeholder="请选择" v-model="scope.row.credit" :disabled="true"></el-input>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="操作">
+                          <template slot-scope="scope">
+                            <el-button size= "mini" type="primary" icon="el-icon-upload" @click="addLine()"></el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-form>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="起始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="项目备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+            </el-tab-pane>
+            <el-tab-pane label="教学类竞赛获奖" name="2">
+              <el-row>
+                <el-col :span="12">
+                  <!--<el-form-item label="获得奖项" prop="id">-->
+                  <el-form-item label="获得奖项">
+                    <el-select v-model="selectedAward.awardName" filterable placeholder="请选择">
+                      <el-option
+                        v-for="item in awardList4Show"
+                        :label="item"
+                        :value="item">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <!--<el-form-item label="奖项级别" prop="id">-->
+                  <el-form-item label="奖项级别" >
+                    <el-select v-model="selectedAward.priceLevel" filterable placeholder="请选择">
+                      <el-option label="特等奖" value="0"></el-option>
+                      <el-option label="一等奖" value="1"></el-option>
+                      <el-option label="二等奖" value="2"></el-option>
+                      <el-option label="三等奖" value="3"></el-option>
+                      <el-option label="优秀奖" value="4"></el-option>
+                      <el-option label="不区分" value="5"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24" >
+                  <el-form-item label="详情">
+                    <el-form class="base-form" ref="baseForm" :model="baseForm" :rules="rules" auto-complete="on">
+                      <el-table ref="table-input" class="table" :data="baseForm.demoList">
+                        <el-table-column label="姓名" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.teacherUid'"  class="all">
+                              <el-select v-model="scope.row.teacherUid" filterable placeholder="请选择">
+                                <el-option
+                                  v-for="(item,index) in allTeacher"
+                                  :label="item.name"
+                                  :value="item.uid">
+                                </el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="第几完成人" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.rankPosition'" class="all">
+                              <el-select v-model="scope.row.rankPosition" filterable placeholder="请选择">
+                                <el-option label="第一完成人" value="1"></el-option>
+                                <el-option label="第二完成人" value="0.7"></el-option>
+                                <el-option label="第三完成人" value="0.5"></el-option>
+                                <el-option label="第四完成人" value="0.3"></el-option>
+                                <el-option label="第五，六完成人" value="0.2"></el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="分数" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.credit'" class="all">
+                              <el-input placeholder="请选择" v-model="scope.row.credit" :disabled="true"></el-input>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="操作">
+                          <template slot-scope="scope">
+                            <el-button size= "mini" type="primary" icon="el-icon-upload" @click="addLine()"></el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-form>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="起始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="项目备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+            <el-tab-pane label="指导学生参加创新创业类竞赛" name="3">
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item label="层次">
+                    <el-select v-model="guideStudent.level" filterable placeholder="请选择">
+                      <el-option label="国家级" value="1"></el-option>
+                      <el-option label="省级" value="0.5"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item label="奖项级别">
+                    <el-select v-model="guideStudent.sort" filterable placeholder="请选择">
+                      <el-option label="一类" value="5"></el-option>
+                      <el-option label="二类" value="2"></el-option>
+                      <el-option label="三类" value="1"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item label="调整系数">
+                    <el-input
+                      placeholder="没有不填写，默认为1"
+                      v-model="input">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item label="获奖等级">
+                    <el-select v-model="guideStudent.priceLevel" filterable placeholder="请选择">
+                      <el-option label="特等奖" value="4"></el-option>
+                      <el-option label="一等奖" value="2"></el-option>
+                      <el-option label="二等奖" value="1"></el-option>
+                      <el-option label="三等奖" value="0.5"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item label="排名">
+                    <el-select v-model="guideStudent.rankPosition" filterable placeholder="请选择">
+                      <el-option label="第一名" value="1"></el-option>
+                      <el-option label="第二名" value="0.7"></el-option>
+                      <el-option label="第三名" value="0.5"></el-option>
+                      <el-option label="第四名" value="0.3"></el-option>
+                      <el-option label="第五名" value="0.2"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item label="业绩积分">
+                    <el-input
+                      placeholder="无数据"
+                      v-model="credit4Show"
+                      :disabled="true">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="竞赛名称" prop="priceName">
+                    <el-input v-model="projectName" placeholder="请输入竞赛名称"></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+
+                <el-col :span="12">
+                  <el-form-item label="起始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+          </el-tabs>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialog1_1 = false;resetForm()">取消</el-button>
+          <el-button type="primary" @click="calculateCredit()">查询</el-button>
+          <el-button type="success" @click="handleSubmit4Admin()">确定</el-button>
+        </div>
+      </el-dialog>
+    </div>
+    <!-- 项目情况申报登记表单 -->
+    <div class="add-form">
+      <el-dialog title="申报" :visible.sync="dialog1_2">
+        <el-divider content-position="left">
+          <span style="color: #3c8dbc;font-weight: bold;font-size: 20px">教学项目</span>
+          <el-tooltip placement="top">
+            <div slot="content" v-html="infoText"></div>
+            <span class="help" style="color: #3c8dbc"><i class="fa fa-exclamation-circle" aria-hidden="true"></i>详情</span>
+          </el-tooltip>
+        </el-divider>
+        <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+          <el-tabs v-model="addTableActiveName" @tab-click="handleClick4Add">
+            <el-tab-pane label="教学项目" name="4">
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item label="项目类别">
+                    <el-select v-model="selectedAward.awardName" filterable placeholder="请选择">
+                      <el-option
+                        v-for="item in awardList4Show"
+                        :label="item"
+                        :value="item">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="16">
+                  <el-form-item label="项目名称" prop="priceName">
+                    <el-input v-model="projectName" placeholder="请输入项目名称"></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24" >
+                  <el-form-item label="详情">
+                    <el-form class="base-form" ref="baseForm" :model="baseForm" :rules="rules" auto-complete="on">
+                      <el-table ref="table-input" class="table" :data="baseForm.demoList">
+                        <el-table-column label="姓名" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.teacherUid'"  class="all">
+                              <el-select v-model="scope.row.teacherUid" filterable placeholder="请选择">
+                                <el-option
+                                  v-for="(item,index) in allTeacher"
+                                  :label="item.name"
+                                  :value="item.uid">
+                                </el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="第几完成人" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.rankPosition'" class="all">
+                              <el-select v-model="scope.row.rankPosition" filterable placeholder="请选择">
+                                <el-option label="第一完成人" value="1"></el-option>
+                                <el-option label="第二完成人" value="0.3"></el-option>
+                                <el-option label="第三完成人" value="0.1"></el-option>
+                                <el-option label="第四完成人" value="0.1"></el-option>
+                                <el-option label="第五完成人" value="0.1"></el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="分数" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.credit'" class="all">
+                              <el-input placeholder="请选择" v-model="scope.row.credit" :disabled="true"></el-input>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="操作">
+                          <template slot-scope="scope">
+                            <el-button size= "mini" type="primary" icon="el-icon-upload" @click="addLine()"></el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-form>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="起始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="项目备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+          </el-tabs>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialog1_2 = false;resetForm()">取消</el-button>
+          <el-button type="primary" @click="calculateCredit()">查询</el-button>
+          <el-button type="success" @click="handleSubmit4Admin()">确定</el-button>
+        </div>
+
+      </el-dialog>
+    </div>
+    <!-- 论文教材申报登记表单 -->
+    <div class="add-form">
+      <el-dialog title="申报" :visible.sync="dialog1_3">
+        <el-divider content-position="left">
+          <span style="color: #3c8dbc;font-weight: bold;font-size: 20px">论文教材</span>
+          <el-tooltip placement="top">
+            <div slot="content" v-html="infoText"></div>
+            <span class="help" style="color: #3c8dbc"><i class="fa fa-exclamation-circle" aria-hidden="true"></i>详情</span>
+          </el-tooltip>
+        </el-divider>
+        <el-form ref="dataEditForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+          <el-tabs v-model="addTableActiveName" @tab-click="handleClick4Add">
+            <el-tab-pane label="教材" name="5">
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item label="教材种类" prop="id">
+                    <el-select v-model="selectedAward.awardName" filterable placeholder="请选择">
+                      <el-option
+                        v-for="item in awardList4Show"
+                        :label="item"
+                        :value="item">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="16">
+                  <el-form-item label="著作名称" prop="priceName">
+                    <el-input v-model="projectName" placeholder="请输入著作名称"></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24" >
+                  <el-form-item label="详情">
+                    <el-form class="base-form" ref="baseForm" :model="baseForm" :rules="rules" auto-complete="on">
+                      <el-table ref="table-input" class="table" :data="baseForm.demoList">
+                        <el-table-column label="姓名" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.teacherUid'"  class="all">
+                              <el-select v-model="scope.row.teacherUid" filterable placeholder="请选择">
+                                <el-option
+                                  v-for="(item,index) in allTeacher"
+                                  :label="item.name"
+                                  :value="item.uid">
+                                </el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="第几完成人" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.rankPosition'" class="all">
+                              <el-select v-model="scope.row.rankPosition" filterable placeholder="请选择">
+                                <el-option label="第一完成人" value="1"></el-option>
+                                <el-option label="第二完成人" value="0.6"></el-option>
+                                <el-option label="第三完成人" value="0.4"></el-option></el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="分数" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.credit'" class="all">
+                              <el-input placeholder="请选择" v-model="scope.row.credit" :disabled="true"></el-input>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="操作">
+                          <template slot-scope="scope">
+                            <el-button size= "mini" type="primary" icon="el-icon-upload" @click="addLine()"></el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-form>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+
+                <el-col :span="12">
+                  <el-form-item label="开始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+
+                  <el-form-item label="其他高水平出版社请备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+
+              </el-row>
+
+            </el-tab-pane>
+            <el-tab-pane label="教学研究论文" name="6">
+              <el-row>
+                <el-col :span="8">
+                  <el-form-item label="一级期刊目录" prop="id">
+                    <el-select v-model="selectedAward.awardName" filterable placeholder="请选择">
+                      <el-option
+                        v-for="item in awardList4Show"
+                        :label="item"
+                        :value="item">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="16">
+                  <el-form-item label="著作名称" prop="priceName">
+                    <el-input v-model="projectName" placeholder="请输入著作名称"></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24" >
+                  <el-form-item label="详情">
+                    <el-form class="base-form" ref="baseForm" :model="baseForm" :rules="rules" auto-complete="on">
+                      <el-table ref="table-input" class="table" :data="baseForm.demoList">
+                        <el-table-column label="姓名" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.teacherUid'"  class="all">
+                              <el-select v-model="scope.row.teacherUid" filterable placeholder="请选择">
+                                <el-option
+                                  v-for="(item,index) in allTeacher"
+                                  :label="item.name"
+                                  :value="item.uid">
+                                </el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="第几完成人" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.rankPosition'" class="all">
+                              <el-select v-model="scope.row.rankPosition" filterable placeholder="请选择">
+                                <el-option label="第一完成人" value="1"></el-option>
+                                <el-option label="第二完成人" value="0.6"></el-option>
+                                <el-option label="第三完成人" value="0.4"></el-option></el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="分数" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.credit'" class="all">
+                              <el-input placeholder="请选择" v-model="scope.row.credit" :disabled="true"></el-input>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="操作">
+                          <template slot-scope="scope">
+                            <el-button size= "mini" type="primary" icon="el-icon-upload" @click="addLine()"></el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-form>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="开始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="其他期刊备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+          </el-tabs>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialog1_3 = false;resetForm()">取消</el-button>
+          <el-button type="primary" @click="calculateCredit()">查询</el-button>
+          <el-button type="success" @click="handleSubmit4Admin()">确定</el-button>
+        </div>
+
+      </el-dialog>
+    </div>
+    <div class="add-form">
+      <el-dialog title="申报" :visible.sync="dialog1_4">
+        <el-divider content-position="left">
+          <span style="color: #3c8dbc;font-weight: bold;font-size: 20px">承担课程</span>
+          <el-tooltip placement="top">
+            <div slot="content" v-html="infoText"></div>
+            <span class="help" style="color: #3c8dbc"><i class="fa fa-exclamation-circle" aria-hidden="true"></i>详情</span>
+          </el-tooltip>
+        </el-divider>
+        <el-form ref="dataEditForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+          <el-tabs v-model="addTableActiveName" @tab-click="handleClick4Add">
+            <el-tab-pane label="承担课程" name="7">
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="承担学时">
+                    <el-select v-model="selectedAward.awardName" filterable placeholder="请选择">
+                      <el-option
+                        v-for="item in awardList4Show"
+                        :label="item"
+                        :value="item">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24" >
+                  <el-form-item label="详情">
+                    <el-form class="base-form" ref="baseForm" :model="baseForm" :rules="rules" auto-complete="on">
+                      <el-table ref="table-input" class="table" :data="baseForm.demoList">
+                        <el-table-column label="姓名" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.teacherUid'"  class="all">
+                              <el-select v-model="scope.row.teacherUid" filterable placeholder="请选择">
+                                <el-option
+                                  v-for="(item,index) in allTeacher"
+                                  :label="item.name"
+                                  :value="item.uid">
+                                </el-option>
+                              </el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="第几完成人" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.rankPosition'" class="all">
+                              <el-select v-model="scope.row.rankPosition" filterable placeholder="请选择">
+                                <el-option label="第一完成人" value="1"></el-option>
+                                <el-option label="第二完成人" value="0.3"></el-option>
+                                <el-option label="第三完成人" value="0.2"></el-option>
+                                <el-option label="第四完成人" value="0.1"></el-option>
+                                <el-option label="第五完成人" value="0.05"></el-option></el-select>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="分数" show-overflow-tooltip>
+                          <template slot-scope="scope">
+                            <el-form-item :prop="'demoList.'+scope.$index+'.credit'" class="all">
+                              <el-input placeholder="请选择" v-model="scope.row.credit" :disabled="true"></el-input>
+                            </el-form-item>
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="操作">
+                          <template slot-scope="scope">
+                            <el-button size= "mini" type="primary" icon="el-icon-upload" @click="addLine()"></el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-form>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="起始时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.beginDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间">
+                    <el-date-picker
+                      type="date"
+                      placeholder="选择日期"
+                      v-model="teacherAchievements.endDate"
+                      style="width: 100%;"
+                      format="yyyy 年 MM 月 dd 日"
+                      value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="备注">
+                    <el-input
+                      type="textarea"
+                      :rows="2"
+                      placeholder="请输入内容"
+                      v-model="textarea">
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+            </el-tab-pane>
+          </el-tabs>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialog1_4 = false;resetForm()">取消</el-button>
+          <el-button type="primary" @click="calculateCredit()">查询</el-button>
+          <el-button type="success" @click="handleSubmit4Admin()">确定</el-button>
+        </div>
+
+      </el-dialog>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+
+</style>
+<script>
+import {getAllTeacher} from "@/api/report";
+import {bulkDelete} from "@/api/teacherAward/bulkImport/bulkImport";
+import {
+  addTeacherAward,
+  delTeacherAward,
+  editTeacherAward,
+  findById,
+  findPage4All, getInfo
+} from "@/api/teacherAward/Import/Import";
+import {findByKind, findByKindUnique} from "@/api/dlut/awards";
+
+export default {
+  name: 'singleImportPage1',
+  data() {
+    return {
+      display:false,
+      dialog1_1:false,
+      dialog1_2:false,
+      dialog1_3:false,
+      dialog1_4:false,
+      active: 0,
+      dialogFormVisible4Edit:false,
+
+      kind1:'',
+      currentTeacher:{},
+      kind:'',
+
+
+      activeName: '1',
+      addTableActiveName:"1",
+
+
+      kindNum:"",
+      pagination: {//分页相关模型数据
+        currentPage: 1,//当前页码
+        pageSize:10,//每页显示的记录数
+        total:0,//总记录数
+        queryString:null//查询条件
+      },
+
+      awardList4Show:'',
+      awardList:[],
+      selectedAward:{},
+      addAwardId:'',
+      credit4Show:'',
+      teacherAchievements:{},
+      textarea:'',
+      projectName: '',
+      input:1,
+
+      guideStudent:{},
+      attachedInfo:'',
+
+      dataList: [],//当前页要展示的分页列表数据
+      formData: {},//表单数据
+      imageUrl:'',
+      autoUpload:true,
+      fileList:[],
+      zip:{},
+      booltemp:true,
+
+      infoText:'',
+      button:'',
+      baseForm: {
+        demoList: [
+          {
+            teacherUid: null,
+            rankPosition: null,
+            credit: 0
+          }
+        ]
+      },
+      rules: {
+      },
+      allTeacher:[],
+      selection: [],
+      ids:[],
+      teachers:[],
+      credits:[],
+      boolTemp:false,
+
+      // 显示搜索条件
+      showSearch: true,
+
+      // 查询参数
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        sort: null,
+        awardName: null,
+        priceLevel: null,
+        boolTemp: null,
+        kind: null,
+        credit: null,
+        info: null,
+        dateRange:[]
+      },
+    };
+  },
+  created() {
+    getAllTeacher().then((response)=>{
+      this.allTeacher = response.data;
+      this.findPage();//VUE对象初始化完成后调用分页查询方法，完成分页查询
+    });
+  },
+  methods: {
+    handleBulkDelete() {
+      //传数组进行批量删除
+      this.$confirm('你确定要批量删除当前数据吗？','提示',{
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        //发送ajax请求，将id提交到Controller
+        bulkDelete(this.ids,this.credits,this.teachers).then((res) => {
+          if(res.flag){
+            this.$message({
+              type:'success',
+              message:res.message
+            });
+            this.findPage();
+          }else{
+            //执行失败
+            this.$message.error(res.message);
+          }
+        }).catch((r) => {
+          this.showMessage(r);
+        });
+      }).catch(() => {
+        this.$message("已取消");
+      });
+    },
+    handleSelectionChange(selection) {
+      this.selection = selection;
+      this.ids = selection.map(item => item.id);// 需要根据数据情况调整id名称
+      this.teachers = selection.map(item => item.teacherUid);// 需要根据数据情况调整id名称
+      this.credits = selection.map(item => item.realCredit);// 需要根据数据情况调整id名称
+    },
+    handleEdit() {
+      //进行表单校验
+      this.$refs['dataEditForm'].validate((valid) => {
+        if(valid){
+          editTeacherAward(this.formData).then((res) => {
+            if(res.flag){
+              //弹出成功提示信息
+              this.$message({
+                type:'success',
+                message:res.message
+              });
+            }else{
+              //执行失败
+              this.$message.error(res.message);
+            }
+          }).finally(() => {
+            //不管成功还是失败，都调用分页查询方法
+            this.findPage();
+            //隐藏编辑窗口
+            this.dialogFormVisible4Edit = false;
+          });
+        }else{
+          //表单校验不通过
+          this.$message.error("表单数据校验失败!");
+          return false;
+        }
+      });
+    },
+    handleUpdate(row) {
+      //弹出编辑窗口
+      this.dialogFormVisible4Edit = true;
+      findById(row.id).then((res) => {
+        if(res.flag){
+          //进行回显，基于VUE的数据绑定实现
+          this.formData = res.data;
+        }else{
+          //查询失败，弹出提示
+          this.$message.error(res.message);
+        }
+      });
+    },
+    handleDelete1(row) {
+      //弹出确认框
+      this.$confirm('你确定要删除当前数据吗？','提示',{
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        //发送ajax请求，将id提交到Controller
+        delTeacherAward(row.id,row.realCredit,row.teacherUid).then((res) => {
+          if(res.flag){
+            this.$message({
+              type:'success',
+              message:res.message
+            });
+            this.findPage();
+          }else{
+            //执行失败
+            this.$message.error(res.message);
+          }
+        }).catch((r) => {
+          this.showMessage(r);
+        });
+      }).catch(() => {
+        this.$message("已取消");
+      });
+    },
+    calculateCredit(){
+      this.checkAwards();
+      if (this.boolTemp == true && this.addAwardId == '229'){
+        this.credit4Show *= 0.6
+      }
+      if (this.boolTemp == true && this.addAwardId == '230'){
+        this.credit4Show *= 0.2
+      }
+      let sumRankPosition = this.sumUpCredit();
+      if (this.baseForm.demoList.length == 1){
+        this.baseForm.demoList.forEach((rank)=>{
+          rank.credit = this.credit4Show*rank.rankPosition;
+        });
+      }
+      else {
+        this.baseForm.demoList.forEach((rank)=>{
+          rank.credit = (this.credit4Show*rank.rankPosition)/sumRankPosition;
+        });
+      }
+
+
+    },
+    sumUpCredit(){
+      let sumRankPosition = 0;
+      this.baseForm.demoList.forEach((rank)=>{
+        sumRankPosition += parseFloat(rank.rankPosition);
+      });
+      return sumRankPosition;
+    },
+    addLine() {
+      const newLine = {
+        teacherUid: null,
+        rankPosition: null,
+        credit: 0
+      }
+      this.baseForm.demoList.push(newLine)
+    },
+    checkGuide(){
+      if(this.guideStudent.sort != null &&
+        this.guideStudent.level != null &&
+        this.guideStudent.priceLevel != null &&
+        this.guideStudent.rankPosition != null ){//执行成功
+        this.credit4Show = this.guideStudent.sort*
+          this.guideStudent.level*
+          this.guideStudent.priceLevel*
+          this.guideStudent.rankPosition*
+          this.input;
+        this.attachedInfo = '层次：'+this.guideStudent.level+
+          '    类别：'+this.guideStudent.level+
+          '    等级：'+this.guideStudent.priceLevel+
+          '    排名：'+this.guideStudent.rankPosition+
+          '    备注：';
+        this.addAwardId='94';
+      }else{//执行失败
+        //弹出提示
+        this.$message.error("请填写基本信息");
+      }
+
+    },
+    checkAwards(){
+      if (this.activeName == '1' && this.addTableActiveName == '3'){
+        this.checkGuide();
+      }
+      if (this.activeName == '3' && this.addTableActiveName == '2'){
+        this.selectedAward.rankPosition = 1;
+      }
+      if (this.activeName == '4' && this.addTableActiveName == '2'){
+        this.selectedAward.priceLevel = 5;
+      }
+      if (this.activeName == '6' || this.activeName == '7'){
+        this.selectedAward.rankPosition = 1;
+      }
+      if (this.addTableActiveName == '4'||
+        this.addTableActiveName == '5'||
+        this.addTableActiveName == '6'||
+        this.addTableActiveName == '7'){
+        this.selectedAward.priceLevel=5;
+      }
+      if (this.activeName == "7" ||this.activeName == "3"||this.activeName == "5"){
+        this.selectedAward.priceLevel=5;
+      }
+      if (this.activeName === "2"){
+        if (this.addTableActiveName != '1'){
+          this.selectedAward.priceLevel=5;
+        }
+      }
+      if (this.activeName === "5" && this.addTableActiveName === '4'){
+        this.selectedAward.awardName='作为校内合作人，聘请海外知名教授为我校访问学者，开展教学和科研方面的合作';
+      }
+      var bool = 0;
+      this.awardList.forEach((award) => {
+        if (award.awardName == this.selectedAward.awardName
+          && award.priceLevel == this.selectedAward.priceLevel){
+          this.credit4Show = award.credit*this.input;
+          this.addAwardId = award.id;
+          bool=1;
+        }
+      });
+      if (bool == 0){
+        if (this.activeName != '1' || this.addTableActiveName != '3'){
+          this.$message.error("没有查询到对应项目");
+          this.resetTemp();
+        }
+      }
+
+    },
+    handleSubmit4Admin(){
+      this.calculateCredit();
+      if (this.teacherAchievements.beginDate > '2022-1-1'&& this.teacherAchievements.endDate <'2023-1-1' || this.activeName == "7"){
+        //这里7只用收集开始日期，需要一起包括
+        if(this.teacherAchievements.beginDate < this.teacherAchievements.endDate || this.activeName == "7"){
+          this.baseForm.demoList.forEach((item)=>{
+            var param = {
+              id:null,
+              teacherUid:item.teacherUid,
+              awardsId: this.addAwardId,
+              projectName:this.projectName,
+              info:this.attachedInfo+this.textarea,
+              beginDate:this.teacherAchievements.beginDate,
+              endDate:this.teacherAchievements.endDate,
+              realCredit:item.credit,
+              weight: 1/this.sumUpCredit(),
+              rankPosition:item.rankPosition,
+              zip:this.zip
+            };
+            //表单校验通过，发生ajax请求，将录入的数据提交到后台进行处理
+            addTeacherAward(param,this.activeName).then((res) => {
+              this.dialog1_1 = false;
+              this.dialog1_2 = false;
+              this.dialog1_3 = false;
+              this.dialog1_4 = false;
+              if(res.flag){//执行成功
+                //新增成功后，重新调用分页查询方法，查询出最新的数据
+                this.findPage();
+                //弹出提示信息
+                this.$message({
+                  message:res.message,
+                  type:'success'
+                });
+              }else{//执行失败
+                //弹出提示
+                this.$message.error(res.message);
+              }
+            });
+          });
+          this.resetForm();
+
+        }else{
+          //校验不通过
+          this.$message.error("数据校验失败，请检查你的输入信息是否正确！");
+          return false;
+        }
+      }else {
+        this.$message.error("请输入2023年的项目或者奖项");
+        this.teacherAchievements={};
+      }
+    },
+    handleDelete(row) {
+      //弹出确认框
+      this.$confirm('你确定要删除当前数据吗？','提示',{
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.baseForm.demoList = this.baseForm.demoList.filter((item, i, arr) => {
+          return item.teacherUid !== row.teacherUid;
+        })
+        if (this.baseForm.demoList.length === 0) {
+          this.addLine();
+        }
+      }).catch(() => {
+        this.$message("已取消");
+      });
+
+    },
+    //分页查询
+    findPage() {
+      //发送ajax请求，提交分页相关请求参数（页码、每页显示记录数、查询条件）
+      var param = {
+        currentPage:this.pagination.currentPage,
+        pageSize:this.pagination.pageSize,
+        queryString: this.pagination.queryString
+      };
+      findPage4All(param,this.activeName).then((res)=>{
+        //解析Controller响应回的数据，为模型数据赋值
+        this.pagination.total = res.total;
+        this.dataList = res.rows;
+      });
+    },
+    // 重置表单
+    resetForm() {
+      this.formData = {};//重置数据
+      this.awardList=[];
+      this.resetTemp();
+    },
+    resetTemp(){
+      this.selectedAward={};
+      this.credit4Show='';
+      this.teacherAchievements = {};
+      this.textarea='';
+      this.attachedInfo='';
+      this.guideStudent={};
+      this.projectName='';
+      this.zip='';
+      this.fileList=[];
+      this.input=1;
+      this.baseForm.demoList = [{
+        teacherUid: null,
+        rankPosition: null,
+        credit: 0
+      }];
+    },
+    //切换页码
+    handleCurrentChange(currentPage) {
+      //设置最新的页码
+      this.pagination.currentPage = currentPage;
+      //重新调用findPage方法进行分页查询
+      this.findPage();
+    },
+    handleClick4Add() {
+      this.resetForm();
+      getInfo(this.button,this.activeName).then((res)=>{
+        //解析Controller响应回的数据，为模型数据赋值
+        this.infoText = res.data;
+      });
+      findByKind(this.addTableActiveName,this.activeName).then((res)=>{
+        //解析Controller响应回的数据，为模型数据赋值
+        this.awardList = res.data;
+      });
+      findByKindUnique(this.addTableActiveName,this.activeName).then((res)=>{
+        //解析Controller响应回的数据，为模型数据赋值
+        this.awardList4Show = res.data;
+      });
+
+    }
+  }
+}
+</script>

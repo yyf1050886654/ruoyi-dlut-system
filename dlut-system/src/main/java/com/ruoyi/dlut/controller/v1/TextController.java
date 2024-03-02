@@ -6,7 +6,7 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.ruoyi.dlut.controller;
+package com.ruoyi.dlut.controller.v1;
 
 import com.ruoyi.dlut.constant.MessageConstant;
 import com.ruoyi.dlut.entity.Result;

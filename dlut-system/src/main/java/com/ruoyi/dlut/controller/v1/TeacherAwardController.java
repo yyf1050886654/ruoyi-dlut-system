@@ -6,8 +6,11 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.ruoyi.dlut.controller;
+package com.ruoyi.dlut.controller.v1;
 
+import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.core.controller.BaseController;
+import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.dlut.constant.MessageConstant;
 import com.ruoyi.dlut.entity.PageResult;
 import com.ruoyi.dlut.entity.QueryPageBean;
@@ -40,7 +43,7 @@ public class TeacherAwardController {
     private TeacherService teacherService;
 
     //分页查询
-    @RequestMapping("/findPage.do")
+    @RequestMapping("/findPage")
     public PageResult findPage(@RequestBody QueryPageBean queryPageBean,
                                @RequestParam("sort") Integer sort,
                                @RequestParam("teacherUid") Integer teacherUid) throws UnsupportedEncodingException {
@@ -51,6 +54,7 @@ public class TeacherAwardController {
                                @PathVariable("sort") Integer sort) throws UnsupportedEncodingException {
         return teacherAwardsService.findPage4All(queryPageBean,sort);
     }
+    @Log(title = "添加教师业绩", businessType = BusinessType.INSERT)
     @PostMapping("/add/{sort}")
     public Result add(@RequestBody TeacherAwards teacherAwards,@PathVariable("sort") Integer sort){
         try{
@@ -64,9 +68,8 @@ public class TeacherAwardController {
             return new Result(false, MessageConstant.ADD_TEACHER_AWARD_FAIL);
         }
     }
-    //根据id删除检查项
+    @Log(title = "删除教师业绩", businessType = BusinessType.DELETE)
     @DeleteMapping("/delete/{id}/{credit}/{teacherUid}")
-    /*@PreAuthorize("hasAuthority('CHECKITEM_DELETE')")*/
     public Result delete(@PathVariable("id") Integer id,
                          @PathVariable("credit") double credit,
                          @PathVariable("teacherUid") Integer teacherUid){
@@ -79,9 +82,9 @@ public class TeacherAwardController {
             return new Result(false, message);
         }
     }
-    //根据id删除检查项
+
+    @Log(title = "删除教师业绩", businessType = BusinessType.DELETE)
     @DeleteMapping("/bulkDelete/{ids}/{credits}/{teachers}")
-    /*@PreAuthorize("hasAuthority('CHECKITEM_DELETE')")*/
     public Result bulkDelete(@PathVariable("ids")List<Integer> ids,
                              @PathVariable("credits")List<Double> credits,
                              @PathVariable("teachers")List<Integer> teachers){
@@ -110,6 +113,7 @@ public class TeacherAwardController {
             return new Result(false, MessageConstant.QUERY_TEACHER_AWARD_FAIL);
         }
     }
+    @Log(title = "更新教师业绩", businessType = BusinessType.UPDATE)
     @PutMapping("/edit")
     public Result edit(@RequestBody TeacherAwards awards){
         try{
@@ -146,6 +150,7 @@ public class TeacherAwardController {
         }
     }
 
+    @Log(title = "下载教师业绩详情", businessType = BusinessType.EXPORT)
     @GetMapping("/downLoadExcel/{sorts}/{teachers}")
     public Result downLoadExcel(@PathVariable("sorts") List<Integer> sorts,
                          @PathVariable("teachers") List<Integer> teachers,
@@ -198,20 +203,4 @@ public class TeacherAwardController {
             return new Result(false,MessageConstant.DOWNLOAD_EXCEL_FAIL);
         }
     }
-    @RequestMapping("/remove.do")
-    public Result remove(@RequestParam("name") String name) throws UnsupportedEncodingException {
-
-        name=new String(name.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-        try{
-            QiniuUtils.deleteFileFromQiniu(name);
-            Result result = new Result(true, MessageConstant.ZIP_DELETE_SUCCESS);
-            result.setData(name);
-            return result;
-        }catch (Exception e){
-            e.printStackTrace();
-            //图片上传失败
-            return new Result(false,MessageConstant.ZIP_DELETE_FAIL);
-        }
-    }
-
 }

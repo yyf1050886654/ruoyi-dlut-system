@@ -182,6 +182,7 @@
         <module>ruoyi-common</module>
         <module>dlut-system</module>
         <module>ruoyi-test</module>
+
     </modules>
     <packaging>pom</packaging>
 

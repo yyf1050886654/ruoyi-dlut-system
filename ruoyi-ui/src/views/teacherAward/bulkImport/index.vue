@@ -2,33 +2,125 @@
   <div class="app-container">
     <div class="box">
       <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
-        <el-tab-pane label="教学评价" name="1">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'" type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="教学评价" name="1" v-if="checkPermi(['manage:1:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                type="success"
+                icon="el-icon-check"
+                @click="downLoadForm=true;"
+                size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -65,8 +157,8 @@
             <el-table-column prop="info" label="备注" align="center"></el-table-column>
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -81,33 +173,125 @@
             </el-pagination>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="科研评价" name="2">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="科研评价" name="2" v-if="checkPermi(['manage:2:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                         v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                         type="success"
+                         icon="el-icon-check"
+                         @click="downLoadForm=true;"
+                         size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -151,8 +335,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -167,33 +351,125 @@
             </el-pagination>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="人才荣誉" name="3">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="人才荣誉" name="3" v-if="checkPermi(['manage:3:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                         v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                         type="success"
+                         icon="el-icon-check"
+                         @click="downLoadForm=true;"
+                         size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -226,8 +502,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -242,33 +518,125 @@
             </el-pagination>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="平台团队" name="4">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="平台团队" name="4" v-if="checkPermi(['manage:4:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                         v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                         type="success"
+                         icon="el-icon-check"
+                         @click="downLoadForm=true;"
+                         size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -301,8 +669,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -317,33 +685,125 @@
             </el-pagination>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="国际化" name="5">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="国际化" name="5" v-if="checkPermi(['manage:5:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                         v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                         type="success"
+                         icon="el-icon-check"
+                         @click="downLoadForm=true;"
+                         size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -367,8 +827,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -385,33 +845,125 @@
 
 
         </el-tab-pane>
-        <el-tab-pane label="学术兼职" name="6">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="学术兼职" name="6" v-if="checkPermi(['manage:6:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                         v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                         type="success"
+                         icon="el-icon-check"
+                         @click="downLoadForm=true;"
+                         size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -454,8 +1006,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -470,33 +1022,125 @@
             </el-pagination>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="人才培养质量" name="7">
-          <div class="filter-container">
-            <el-input placeholder="教师姓名" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" @click="templateDownLoadForm = true">模板下载</el-button>
-            <el-upload action="/bulkImport/project.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       :on-error="uploadErr"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">批量上传</el-button>
-            </el-upload>
-            <el-upload action="/bulkImport/guideStudents.do"
-                       name="excelFile"
-                       :show-file-list="false"
-                       :on-success="handleSuccess1"
-                       :before-upload="beforeUpload1"
-                       :on-progress="onUpload"
-                       class="inline-block">
-              <el-button type="primary" icon="el-icon-upload">指导竞赛上传</el-button>
-            </el-upload>
-            <el-button type="danger" icon="el-icon-delete" @click="handleBulkDelete()">批量删除</el-button>
-            <el-button type="success" icon="el-icon-check" @click="downLoadForm=true;">导出</el-button>
-          </div>
+        <el-tab-pane label="人才培养质量" name="7" v-if="checkPermi(['manage:7:all'])">
+          <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+            <el-form-item label="教师姓名" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入教师姓名"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项名称" prop="awardName">
+              <el-input
+                v-model="queryParams.awardName"
+                placeholder="请输入奖项名称"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="奖项级别" prop="priceLevel">
+              <el-select
+                v-model="queryParams.priceLevel"
+                placeholder="奖项级别"
+                clearable
+                style="width: 240px"
+              >
+                <!--          <el-option
+                            v-for="dict in dict.type.sys_normal_disable"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                          />-->
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年度">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-date-picker
+                v-model="queryParams.dateRange"
+                style="width: 240px"
+                value-format="yyyy-MM-dd"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+              ></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button type="primary"
+                         plain
+                         @click="templateDownLoadForm = true"
+                         size="mini"
+              >模板下载</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/project.do"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         :on-error="uploadErr"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >批量上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-upload action="/bulkImport/guideStudents"
+                         name="excelFile"
+                         :show-file-list="false"
+                         :on-success="handleSuccess1"
+                         :before-upload="beforeUpload1"
+                         :on-progress="onUpload"
+                         class="inline-block">
+                <el-button type="primary"
+                           plain
+                           icon="el-icon-upload"
+                           size="mini"
+                >指导竞赛上传</el-button>
+              </el-upload>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button type="danger"
+                         plain
+                         icon="el-icon-delete"
+                         @click="handleBulkDelete()"
+                         size="mini"
+              >批量删除</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button plain
+                         v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == '管理员'||currentTeacher.name=='杨逸帆'"
+                         type="success"
+                         icon="el-icon-check"
+                         @click="downLoadForm=true;"
+                         size="mini"
+              >导出</el-button>
+
+            </el-col>
+            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+          </el-row>
           <el-table size="small" @selection-change="handleSelectionChange" current-row-key="id" :data="dataList" stripe highlight-current-row >
             <el-table-column type="selection" label="序号"></el-table-column>
             <el-table-column type="index" align="center" label="序号"></el-table-column>
@@ -515,8 +1159,8 @@
             <el-table-column label="编辑/删除" align="center">
               <template slot-scope="scope">
                 <!--<el-button type="success" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>-->
-                <el-button size= "mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)"></el-button>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
+                <el-button size= "mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -670,6 +1314,7 @@
 import {getAllTeacher, getTeacher} from "@/api/report";
 import {delTeacherAward, editTeacherAward, findById, findPage4All} from "@/api/teacherAward/Import/Import";
 import {bulkDelete, downLoadExcel} from "@/api/teacherAward/bulkImport/bulkImport";
+import {checkPermi} from "@/utils/permission";
 
 export default {
   name: "Teacher",
@@ -726,7 +1371,21 @@ export default {
       selectedTemplate:'',
       loading:false,
       progressPercent:0,
-      timer:{}
+      timer:{},
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        sort: null,
+        awardName: null,
+        priceLevel: null,
+        boolTemp: null,
+        kind: null,
+        credit: null,
+        info: null
+      },
+      // 显示搜索条件
+      showSearch: true,
+
     };
   },
   created() {
@@ -739,6 +1398,7 @@ export default {
     });
   },
   methods: {
+    checkPermi,
     onUpload(event, file, fileList){  //三个参数看情况使用
 
 

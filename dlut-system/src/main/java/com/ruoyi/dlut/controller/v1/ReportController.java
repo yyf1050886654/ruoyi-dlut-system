@@ -1,4 +1,4 @@
-package com.ruoyi.dlut.controller;
+package com.ruoyi.dlut.controller.v1;
 
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.dlut.constant.MessageConstant;

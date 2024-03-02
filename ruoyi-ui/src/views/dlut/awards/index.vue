@@ -1,11 +1,5 @@
 <template>
-<!--  <div class="content-header">
-    <h1>业绩指标管理</h1>
-    <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>业绩指标管理</el-breadcrumb-item>
-    </el-breadcrumb>
-  </div>-->
+
   <div class="app-container">
     <div class="box">
       <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
