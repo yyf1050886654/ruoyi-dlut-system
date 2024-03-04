@@ -8,6 +8,8 @@
 
 package com.ruoyi.dlut.controller.v1;
 
+import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.dlut.constant.MessageConstant;
 import com.ruoyi.dlut.constant.RankPosition;
 import com.ruoyi.dlut.entity.Result;
@@ -21,6 +23,7 @@ import com.ruoyi.dlut.service.TeacherService;
 import com.ruoyi.dlut.service.UserService;
 import com.ruoyi.dlut.utils.POIUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,12 +44,13 @@ public class BulkImportController {
     private TeacherService teacherService;
     @Autowired
     private TeacherAwardsService teacherAwardsService;
-    @RequestMapping("/project.do")
-    public Result project(@RequestParam("excelFile") MultipartFile excelFile){
+    @PostMapping("/project")
+    @Log(title = "批量导入业绩数据", businessType = BusinessType.IMPORT)
+    public Result project(MultipartFile file){
         int row = 1;
         try {
             //读取Excel文件数据
-            List<String[]> list = POIUtils.readExcel(excelFile);
+            List<String[]> list = POIUtils.readExcel(file);
             if(list != null && list.size() > 0){
                 List<Project> projectList = new ArrayList<>();
                 for (String[] strings : list) {
@@ -88,7 +92,8 @@ public class BulkImportController {
         }
         return new Result(true,MessageConstant.BULK_IMPORT_SUCCESS);
     }
-    @RequestMapping("/teacher.do")
+    @PostMapping("/teacher")
+    @Log(title = "批量导入教师初始数据", businessType = BusinessType.IMPORT)
     public Result teacher(@RequestParam("excelFile") MultipartFile excelFile){
         try {
             //读取Excel文件数据
@@ -115,7 +120,8 @@ public class BulkImportController {
         }
         return new Result(true,MessageConstant.BULK_IMPORT_SUCCESS);
     }
-    @RequestMapping("/guideStudents.do")
+    @PostMapping("/guideStudents")
+    @Log(title = "批量导入指导学生参加竞赛", businessType = BusinessType.IMPORT)
     public Result guideStudents(@RequestParam("excelFile") MultipartFile excelFile){
         int row = 1;
         try {

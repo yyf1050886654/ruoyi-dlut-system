@@ -5,10 +5,69 @@
       <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
         <el-tab-pane label="教学评价" name="1">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button type="primary" plain class="butT" @click="handleCreate()" size="mini">新建</el-button>
           </div>
+
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
             <el-table-column prop="id" align="center" label="业绩编号"></el-table-column>
@@ -37,8 +96,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -55,9 +114,69 @@
         </el-tab-pane>
         <el-tab-pane label="科研评价" name="2">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+<!--            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
+            <el-button @click="findPage()" class="dalfBut">查询</el-button>-->
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button type="primary" plain class="butT" @click="handleCreate()" size="mini">新建</el-button>
           </div>
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
@@ -94,8 +213,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -112,9 +231,69 @@
         </el-tab-pane>
         <el-tab-pane label="人才荣誉" name="3">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+<!--            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
+            <el-button @click="findPage()" class="dalfBut">查询</el-button>-->
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button plain type="primary" class="butT" size="mini" @click="handleCreate()">新建</el-button>
           </div>
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
@@ -130,8 +309,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -148,9 +327,69 @@
         </el-tab-pane>
         <el-tab-pane label="平台团队" name="4">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+<!--            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
+            <el-button @click="findPage()" class="dalfBut">查询</el-button>-->
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button plain size="mini" type="primary" class="butT" @click="handleCreate()">新建</el-button>
           </div>
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
@@ -175,8 +414,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -193,9 +432,67 @@
         </el-tab-pane>
         <el-tab-pane label="国际化" name="5">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button plain type="primary" size="mini" class="butT" @click="handleCreate()">新建</el-button>
           </div>
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
@@ -212,8 +509,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -230,10 +527,68 @@
         </el-tab-pane>
         <el-tab-pane label="学术兼职" name="6">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate6_1()">重大项目/教学指导兼职</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate6_2()">学术学会兼职</el-button>
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button plain size="mini" type="primary" class="butT" @click="handleCreate6_1()">重大项目/教学指导兼职</el-button>
+            <el-button plain size="mini" type="primary" class="butT" @click="handleCreate6_2()">学术学会兼职</el-button>
           </div>
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
@@ -272,8 +627,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -290,9 +645,67 @@
         </el-tab-pane>
         <el-tab-pane label="人才培养质量" name="7">
           <div class="filter-container">
-            <el-input placeholder="业绩名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
-            <el-button @click="findPage()" class="dalfBut">查询</el-button>
-            <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+            <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+              <el-form-item label="教师姓名" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入教师姓名"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项名称" prop="awardName">
+                <el-input
+                  v-model="queryParams.awardName"
+                  placeholder="请输入奖项名称"
+                  clearable
+                  @keyup.enter.native="handleQuery"
+                />
+              </el-form-item>
+              <el-form-item label="奖项级别" prop="priceLevel">
+                <el-select
+                  v-model="queryParams.priceLevel"
+                  placeholder="奖项级别"
+                  clearable
+                  style="width: 240px"
+                >
+                  <!--          <el-option
+                              v-for="dict in dict.type.sys_normal_disable"
+                              :key="dict.value"
+                              :label="dict.label"
+                              :value="dict.value"
+                            />-->
+                </el-select>
+              </el-form-item>
+              <el-form-item label="年度">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="创建时间">
+                <el-date-picker
+                  v-model="queryParams.dateRange"
+                  style="width: 240px"
+                  value-format="yyyy-MM-dd"
+                  type="daterange"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-button plain size="mini" type="primary" class="butT" @click="handleCreate()">新建</el-button>
           </div>
           <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
             <el-table-column type="index" align="center" label="索引"></el-table-column>
@@ -309,8 +722,8 @@
             <el-table-column prop="credit" label="业绩积分" align="center"></el-table-column>
             <el-table-column label="操作" align="center">
               <template slot-scope="scope">
-                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button type="text" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                <el-button size="mini" type="text" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -489,7 +902,20 @@ export default {
         {label: '三等奖', value: 3},
         {label: '优秀奖', value: 4},
         {label: '不区分奖项', value: 5}
-      ]
+      ],
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        sort: null,
+        awardName: null,
+        priceLevel: null,
+        boolTemp: null,
+        kind: null,
+        credit: null,
+        info: null
+      },
+      // 显示搜索条件
+      showSearch: true
     };
   },
   created() {
