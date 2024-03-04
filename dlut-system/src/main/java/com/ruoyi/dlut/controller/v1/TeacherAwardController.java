@@ -151,7 +151,7 @@ public class TeacherAwardController {
     }
 
     @Log(title = "下载教师业绩详情", businessType = BusinessType.EXPORT)
-    @GetMapping("/downLoadExcel/{sorts}/{teachers}")
+    @PostMapping("/downLoadExcel/{sorts}/{teachers}")
     public Result downLoadExcel(@PathVariable("sorts") List<Integer> sorts,
                          @PathVariable("teachers") List<Integer> teachers,
                                HttpServletResponse response){

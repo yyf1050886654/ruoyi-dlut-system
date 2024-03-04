@@ -1,7 +1,8 @@
 <template>
   <div class="app-container">
     <div class="box" style="height: 900px">
-      <el-button v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == 'admin'||currentTeacher.name=='杨逸帆'" @click="exportRankExcel">导出Excel</el-button>
+<!--      <el-button v-if="currentTeacher.name=='刘宇峰'||currentTeacher.name == 'admin'||currentTeacher.name=='杨逸帆'" @click="exportRankExcel">导出Excel</el-button>-->
+      <el-button @click="exportRankExcel">导出Excel</el-button>
       <el-button @click="handleDownLoad">导出详情</el-button>
       <div class="excelTime">日期：{{reportData.reportDate}}</div>
       <table class="exceTable" cellspacing="0" cellpadding="0">
@@ -79,11 +80,15 @@ export default {
   methods: {
     exportRankExcel(){
       //window.location.href = '/report/rankExcel.do';
-      rankExcel();
+      //rankExcel();
+      this.download('/report/rankExcel', {
+      }, `rankExcel_${new Date().getTime()}.xlsx`)
     },
     handleDownLoad(){
       //window.location.href = "/teacherAward/downLoadExcel.do?sorts="+this.checkedSorts+"&teachers="+this.checkedTeachers;
-      downLoadExcel(this.checkedSorts,this.checkedTeachers);
+      //downLoadExcel(this.checkedSorts,this.checkedTeachers);
+      this.download("/teacherAward/downLoadExcel/"+this.checkedSorts+"/"+this.checkedTeachers, {
+      }, `Details_${new Date().getTime()}.xlsx`)
     },
     initBarChart(){
       var myChart2 = echarts.init(document.getElementById('chart'));

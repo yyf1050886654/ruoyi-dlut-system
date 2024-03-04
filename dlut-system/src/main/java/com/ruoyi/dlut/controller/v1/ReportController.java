@@ -85,7 +85,7 @@ public class ReportController {
         }
 
     }
-    @GetMapping("rankExcel")
+    @PostMapping("/rankExcel")
     public Result rankExcel(HttpServletRequest request, HttpServletResponse response){
         try{
             List<Map<String, Object>> list = reportService.getTeacherCreditRank();
