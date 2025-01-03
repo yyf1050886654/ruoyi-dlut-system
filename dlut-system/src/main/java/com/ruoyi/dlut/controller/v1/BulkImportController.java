@@ -46,7 +46,7 @@ public class BulkImportController {
     private TeacherAwardsService teacherAwardsService;
     @PostMapping("/project")
     @Log(title = "批量导入业绩数据", businessType = BusinessType.IMPORT)
-    public Result project(MultipartFile file){
+    public Result project(@RequestParam("excelFile")MultipartFile file){
         int row = 1;
         try {
             //读取Excel文件数据

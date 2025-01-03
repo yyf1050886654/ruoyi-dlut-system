@@ -130,4 +130,5 @@ public class SysConfigController extends BaseController
         configService.resetConfigCache();
         return success();
     }
+
 }
