@@ -1,6 +1,7 @@
 package com.ruoyi.dlut.service;
 
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.dlut.bo.ExportAwardDetailsBo;
 import com.ruoyi.dlut.bo.TeacherCreditSumBo;
 import com.ruoyi.dlut.domain.TbSysUser;
 import com.ruoyi.dlut.domain.TbTeacherAwards;
@@ -28,6 +29,13 @@ public interface ITeacherDetailsServiceImpl {
 
     public List<TeacherCreditSumLeafBo> getDetailsByUserId(String userId);
 
+    /**
+     * 导出所有老师详情
+     * @return
+     */
+    public List<ExportAwardDetailsBo> exportAwardDetails();
+
     public List<EvaluatedTeacherAwardsDetailResp> sumUpAllEvaluatedTeacherAwardsDetail();
+
 
 }

@@ -20,4 +20,6 @@ public class ImportantConstants {
     //其他进款
     public static final Long OTHER_INCOME_AWARD_ID = 224L;
 
+    public static final Long PUBLIC_SERVICE_AWARD_ID = 277L;
+
 }

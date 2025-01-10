@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.dlut.bo.ExportAwardDetailsBo;
 import com.ruoyi.dlut.bo.TeacherCreditSumBo;
 import com.ruoyi.dlut.constant.ImportantConstants;
 import com.ruoyi.dlut.constant.RedisConstant;
@@ -20,6 +21,7 @@ import com.ruoyi.dlut.service.ITeacherDetailsServiceImpl;
 import com.ruoyi.dlut.vo.EvaluatedTeacherAwardsDetailResp;
 import com.ruoyi.dlut.vo.EvaluatedTeacherResp;
 import com.ruoyi.dlut.vo.TeacherCreditSumLeafBo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class TeacherDetailsServiceImpl implements ITeacherDetailsServiceImpl {
 
     @Autowired
@@ -53,61 +56,8 @@ public class TeacherDetailsServiceImpl implements ITeacherDetailsServiceImpl {
     @Override
     public List<TeacherCreditSumBo> listAllTeacherCredit(String queryParam) {
         return tbTeacherAwardsMapper.groupAndSumByUserId(queryParam);
-        //return getTeacherCreditSumBos(queryParam);
-    }
 
-    @NotNull
-    private ArrayList<TeacherCreditSumBo> getTeacherCreditSumBos(ListTeacherDetailsTopDto queryParam) {
-        /*if (queryParam != null){
-            IPage<TbSysUser> page = tbSysUserService.pageSelectUserByDepartmentId(
-                    ImportantConstants.IMPORTANT_USER_DEPARTMENT_ID, queryParam.getPageNum(), queryParam.getPageSize());
-        }*/
-        LambdaQueryWrapper<TbTeacherAwards> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        if (queryParam != null && StringUtils.isNotEmpty(queryParam.getUserName())) {
-            lambdaQueryWrapper.like(TbTeacherAwards::getUserName, queryParam);
-        }
-        lambdaQueryWrapper.orderByAsc(TbTeacherAwards::getAwardId);
-        List<TbTeacherAwards> teacherAwardsList = tbTeacherAwardsService.list(lambdaQueryWrapper);
-        Map<Long, TeacherCreditSumBo> collect = teacherAwardsList.stream().collect(Collectors.groupingBy(TbTeacherAwards::getUserId, Collectors.collectingAndThen(
-                Collectors.toList(),
-                list -> {
-                    TeacherCreditSumBo teacherCreditSumBo = new TeacherCreditSumBo();
-                    teacherCreditSumBo.setAwardCount(list.size());
-                    teacherCreditSumBo.setUserId(list.get(0).getUserId());
-                    teacherCreditSumBo.setUserName(list.get(0).getUserName());
-                    BigDecimal internationalCredit = new BigDecimal(0);
-                    BigDecimal academicPosition = new BigDecimal(0);
-                    BigDecimal others = new BigDecimal(0);
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (TbTeacherAwards tbTeacherAwards : list){
-                        //国际化
-                        if (tbTeacherAwards.getAwardId() >= 250 && tbTeacherAwards.getAwardId() <= 259){
-                            internationalCredit = internationalCredit.add(tbTeacherAwards.getRealCredit());
-                        }
-                        //学术兼职
-                        else if (tbTeacherAwards.getAwardId() >= 103 && tbTeacherAwards.getAwardId() <= 132){
-                            academicPosition = academicPosition.add(tbTeacherAwards.getRealCredit());
-                        }
-                        else {
-                            others = others.add(tbTeacherAwards.getRealCredit());
-                        }
-                    }
-                    if (internationalCredit.intValue() > ImportantConstants.INTERNATIONAL_CREDIT_MAXIMUM_LIMIT){
-                        stringBuilder.append("国际化").append(internationalCredit.intValue()).append("分超出上限，仅记2分");
-                        internationalCredit = new BigDecimal(2);
-                    }
-                    if (academicPosition.intValue() > ImportantConstants.ACADEMIC_POSITION_CREDIT_MAXIMUM_LIMIT){
-                        stringBuilder.append("学术兼职").append(academicPosition.intValue()).append("分超出上限，仅记4分");
-                        academicPosition = new BigDecimal(4);
-                    }
-                    teacherCreditSumBo.setCredit(others.add(internationalCredit).add(academicPosition));
-                    teacherCreditSumBo.setRemark(stringBuilder.toString());
-                    return teacherCreditSumBo;
-                }
-        )));
-        return new ArrayList<>(collect.values());
     }
-
     @Override
     public List<EvaluatedTeacherResp> listAllTeacher() {
         String key = RedisConstant.LIST_ALL_TEACHER_PREFIX + ":" + "allTeacher";
@@ -152,6 +102,35 @@ public class TeacherDetailsServiceImpl implements ITeacherDetailsServiceImpl {
             response.add(teacherAwardDetailResp);
         }
         return response;
+    }
+
+    @Override
+    public List<ExportAwardDetailsBo> exportAwardDetails() {
+        List<TbTeacherAwards> teacherAwardsList = tbTeacherAwardsService.list();
+        List<ExportAwardDetailsBo> exportAwardDetailsBos = new ArrayList<>();
+        for (TbTeacherAwards tbTeacherAwards :teacherAwardsList){
+            if (tbTeacherAwards.getAwardId() == null){
+                continue;
+            }
+            TbAwardsCategory tbAwardsCategory = tbAwardsCategoryService.selectTbAwardsCategoryById(tbTeacherAwards.getAwardId());
+            if (tbAwardsCategory != null){
+                ExportAwardDetailsBo exportAwardDetailsBo = getExportAwardDetailsBo(tbTeacherAwards, tbAwardsCategory);
+                exportAwardDetailsBos.add(exportAwardDetailsBo);
+            }
+        }
+        return exportAwardDetailsBos;
+    }
+
+    @NotNull
+    private static ExportAwardDetailsBo getExportAwardDetailsBo(TbTeacherAwards tbTeacherAwards, TbAwardsCategory tbAwardsCategory) {
+        ExportAwardDetailsBo exportAwardDetailsBo = new ExportAwardDetailsBo();
+        exportAwardDetailsBo.setAwardName(tbAwardsCategory.getAwardName());
+        exportAwardDetailsBo.setPriceLevelName(tbAwardsCategory.getPriceLevelName());
+        exportAwardDetailsBo.setUserName(tbTeacherAwards.getUserName());
+        exportAwardDetailsBo.setRankPosition(tbTeacherAwards.getRankPosition());
+        exportAwardDetailsBo.setProjectName(tbTeacherAwards.getProjectName());
+        exportAwardDetailsBo.setCredit(tbTeacherAwards.getRealCredit());
+        return exportAwardDetailsBo;
     }
 
     @Override

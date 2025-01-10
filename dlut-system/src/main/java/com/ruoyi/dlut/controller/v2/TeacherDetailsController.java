@@ -7,6 +7,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.dlut.bo.ExportAwardDetailsBo;
 import com.ruoyi.dlut.bo.TeacherCreditSumBo;
 import com.ruoyi.dlut.domain.TbSysUser;
 import com.ruoyi.dlut.domain.TbTeacherAwards;
@@ -53,14 +54,25 @@ public class TeacherDetailsController extends BaseController {
     /**
      * 导出教师奖项详情列表
      */
-    @Log(title = "导出积分", businessType = BusinessType.EXPORT)
+    @Log(title = "导出积分总分", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response,TeacherCreditSumBo teacherCreditSumBo) {
         List<TeacherCreditSumBo> list = teacherDetailsService.listAllTeacherCredit(null);
         ExcelUtil<TeacherCreditSumBo> util = new ExcelUtil<TeacherCreditSumBo>(TeacherCreditSumBo.class);
-        util.exportExcel(response, list, "教师奖项详情数据");
+        util.exportExcel(response, list, "教师奖项总分数据");
     }
 
+    /**
+     * 导出教师奖项详情列表
+     */
+    @Log(title = "导出积分详情", businessType = BusinessType.EXPORT)
+    @PostMapping("/exportAwardDetails")
+    public void exportAwardDetails(HttpServletResponse response)
+    {
+        List<ExportAwardDetailsBo> list = teacherDetailsService.exportAwardDetails();
+        ExcelUtil<ExportAwardDetailsBo> util = new ExcelUtil<ExportAwardDetailsBo>(ExportAwardDetailsBo.class);
+        util.exportExcel(response, list, "教师奖项详情数据");
+    }
     /**
      * 查询所有被评教师
      */
