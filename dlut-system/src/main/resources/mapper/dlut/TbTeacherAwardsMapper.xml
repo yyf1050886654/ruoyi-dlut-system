@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dlut.mapper.TbTeacherAwardsMapper">
+
+    <resultMap type="TbTeacherAwards" id="TbTeacherAwardsResult">
+        <result property="id"    column="id"    />
+        <result property="awardId"    column="award_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="projectName"    column="project_name"    />
+        <result property="weight"    column="weight"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="rankPosition"    column="rank_position"    />
+        <result property="userName"    column="user_name"    />
+        <result property="realCredit"    column="real_credit"    />
+    </resultMap>
+
+    <sql id="selectTbTeacherAwardsVo">
+        select id, award_id, user_id, project_name, weight, create_by, create_time, update_by, update_time, rank_position, user_name, real_credit from tb_teacher_awards
+    </sql>
+
+    <select id="selectTbTeacherAwardsList" parameterType="TbTeacherAwards" resultMap="TbTeacherAwardsResult">
+        <include refid="selectTbTeacherAwardsVo"/>
+        <where>
+            <if test="awardId != null "> and award_id = #{awardId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="projectName != null  and projectName != ''"> and project_name like concat('%', #{projectName}, '%')</if>
+            <if test="weight != null "> and weight = #{weight}</if>
+            <if test="rankPosition != null "> and rank_position = #{rankPosition}</if>
+            <if test="userName != null  and userName != ''"> and user_name like concat('%', #{userName}, '%')</if>
+            <if test="realCredit != null "> and real_credit = #{realCredit}</if>
+        </where>
+    </select>
+
+    <select id="selectTbTeacherAwardsById" parameterType="Long" resultMap="TbTeacherAwardsResult">
+        <include refid="selectTbTeacherAwardsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTbTeacherAwards" parameterType="TbTeacherAwards" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_teacher_awards
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="awardId != null">award_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="projectName != null">project_name,</if>
+            <if test="weight != null">weight,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="rankPosition != null">rank_position,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
+            <if test="realCredit != null">real_credit,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="awardId != null">#{awardId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="projectName != null">#{projectName},</if>
+            <if test="weight != null">#{weight},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="rankPosition != null">#{rankPosition},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="realCredit != null">#{realCredit},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTbTeacherAwards" parameterType="TbTeacherAwards">
+        update tb_teacher_awards
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="awardId != null">award_id = #{awardId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="projectName != null">project_name = #{projectName},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="rankPosition != null">rank_position = #{rankPosition},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
+            <if test="realCredit != null">real_credit = #{realCredit},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTbTeacherAwardsById" parameterType="Long">
+        delete from tb_teacher_awards where id = #{id}
+    </delete>
+
+    <delete id="deleteTbTeacherAwardsByIds" parameterType="String">
+        delete from tb_teacher_awards where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="groupAndSumByUserId" parameterType='String' resultType="com.ruoyi.dlut.bo.TeacherCreditSumBo">
+        SELECT user_id, SUM(real_credit) AS credit,COUNT(id) as award_count,user_name
+        FROM tb_teacher_awards
+        <where>
+            <if test="query != null"> user_name like CONCAT('%', #{query}, '%')</if>
+        </where>
+        GROUP BY user_id
+    </select>
+
+    <select id="groupAndSumByUserId" parameterType="String" resultType="com.ruoyi.dlut.bo.TeacherCreditSumBo">
+        SELECT user_id,
+        SUM(real_credit) AS credit,
+        COUNT(id) AS award_count,
+        user_name
+        FROM tb_teacher_awards
+        <where>
+            <if test="query != null">
+                user_name LIKE CONCAT('%', #{query}, '%')
+            </if>
+        </where>
+        GROUP BY user_id
+    </select>
+
+</mapper>

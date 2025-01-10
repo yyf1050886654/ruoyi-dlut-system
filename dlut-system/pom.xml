@@ -17,9 +17,8 @@
             <artifactId>ruoyi-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.qiniu</groupId>
-            <artifactId>qiniu-java-sdk</artifactId>
-            <version>7.2.0</version>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-system</artifactId>
         </dependency>
     </dependencies>
 </project>

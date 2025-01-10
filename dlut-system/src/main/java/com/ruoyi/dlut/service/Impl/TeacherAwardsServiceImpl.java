@@ -14,7 +14,6 @@ import com.ruoyi.dlut.pojo.Awards;
 import com.ruoyi.dlut.pojo.Teacher;
 import com.ruoyi.dlut.pojo.TeacherAwards;
 import com.ruoyi.dlut.service.TeacherAwardsService;
-import com.ruoyi.dlut.utils.QiniuUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +48,7 @@ public class TeacherAwardsServiceImpl implements TeacherAwardsService {
             Awards temp = awardDao.findById(award.getAwardsId());
             award.setAwards(temp);
 
-            award.setZip(QiniuUtils.downLoadFileFromQiniu(award.getZip()));
+            //award.setZip(QiniuUtils.downLoadFileFromQiniu(award.getZip()));
         }
         return new PageResult(page.getTotal(),teacherAwardsList);
     }
@@ -73,7 +72,7 @@ public class TeacherAwardsServiceImpl implements TeacherAwardsService {
             award.setAwards(temp);
             Teacher teacher = teacherDao.findById(award.getTeacherUid());
             award.setTeacher(teacher);
-            award.setZip(QiniuUtils.downLoadFileFromQiniu(award.getZip()));
+            //award.setZip(QiniuUtils.downLoadFileFromQiniu(award.getZip()));
         }
         return new PageResult(page.getTotal(),teacherAwardsList);
     }

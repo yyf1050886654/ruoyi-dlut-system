@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dlut.mapper.TbAwardsCategoryMapper">
+
+    <resultMap type="TbAwardsCategory" id="TbAwardsCategoryResult">
+        <result property="id"    column="id"    />
+        <result property="sort"    column="sort"    />
+        <result property="awardName"    column="award_name"    />
+        <result property="priceLevel"    column="price_level"    />
+        <result property="priceLevelName"    column="price_level_name"    />
+        <result property="kind"    column="kind"    />
+        <result property="credit"    column="credit"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTbAwardsCategoryVo">
+        select id, sort, award_name, price_level, price_level_name, kind, credit, create_time, update_time, remark from tb_awards_category
+    </sql>
+
+    <select id="selectTbAwardsCategoryList" parameterType="TbAwardsCategory" resultMap="TbAwardsCategoryResult">
+        <include refid="selectTbAwardsCategoryVo"/>
+        <where>
+            <if test="sort != null "> and sort = #{sort}</if>
+            <if test="awardName != null  and awardName != ''"> and award_name like concat('%', #{awardName}, '%')</if>
+            <if test="priceLevel != null "> and price_level = #{priceLevel}</if>
+            <if test="priceLevelName != null  and priceLevelName != ''"> and price_level_name like concat('%', #{priceLevelName}, '%')</if>
+            <if test="kind != null "> and kind = #{kind}</if>
+            <if test="credit != null "> and credit = #{credit}</if>
+        </where>
+    </select>
+
+    <select id="selectTbAwardsCategoryById" parameterType="Long" resultMap="TbAwardsCategoryResult">
+        <include refid="selectTbAwardsCategoryVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTbAwardsCategory" parameterType="TbAwardsCategory" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_awards_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sort != null">sort,</if>
+            <if test="awardName != null and awardName != ''">award_name,</if>
+            <if test="priceLevel != null">price_level,</if>
+            <if test="priceLevelName != null and priceLevelName != ''">price_level_name,</if>
+            <if test="kind != null">kind,</if>
+            <if test="credit != null">credit,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sort != null">#{sort},</if>
+            <if test="awardName != null and awardName != ''">#{awardName},</if>
+            <if test="priceLevel != null">#{priceLevel},</if>
+            <if test="priceLevelName != null and priceLevelName != ''">#{priceLevelName},</if>
+            <if test="kind != null">#{kind},</if>
+            <if test="credit != null">#{credit},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTbAwardsCategory" parameterType="TbAwardsCategory">
+        update tb_awards_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="awardName != null and awardName != ''">award_name = #{awardName},</if>
+            <if test="priceLevel != null">price_level = #{priceLevel},</if>
+            <if test="priceLevelName != null and priceLevelName != ''">price_level_name = #{priceLevelName},</if>
+            <if test="kind != null">kind = #{kind},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTbAwardsCategoryById" parameterType="Long">
+        delete from tb_awards_category where id = #{id}
+    </delete>
+
+    <delete id="deleteTbAwardsCategoryByIds" parameterType="String">
+        delete from tb_awards_category where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

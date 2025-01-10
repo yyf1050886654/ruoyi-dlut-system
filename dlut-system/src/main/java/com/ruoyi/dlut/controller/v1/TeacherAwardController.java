@@ -9,7 +9,6 @@
 package com.ruoyi.dlut.controller.v1;
 
 import com.ruoyi.common.annotation.Log;
-import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.dlut.constant.MessageConstant;
 import com.ruoyi.dlut.entity.PageResult;
@@ -18,7 +17,6 @@ import com.ruoyi.dlut.entity.Result;
 import com.ruoyi.dlut.pojo.TeacherAwards;
 import com.ruoyi.dlut.service.TeacherAwardsService;
 import com.ruoyi.dlut.service.TeacherService;
-import com.ruoyi.dlut.utils.QiniuUtils;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -29,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 
@@ -137,7 +134,7 @@ public class TeacherAwardController {
             //使用UUID随机产生文件名称，防止同名文件覆盖
             /*String fileName = name+"/"+UUID.randomUUID().toString() + suffix;*/
             String fileName = name+"/"+originalFilename;
-            QiniuUtils.upload2Qiniu(imgFile.getBytes(),fileName);
+            //QiniuUtils.upload2Qiniu(imgFile.getBytes(),fileName);
             //图片上传成功
             Result result = new Result(true, MessageConstant.ZIP_UPLOAD_SUCCESS);
             result.setData(fileName);

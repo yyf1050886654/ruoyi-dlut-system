@@ -11,4 +11,10 @@ package com.ruoyi.dlut.constant;
 public class RedisConstant {
     public static final String UPLOAD_ZIP_RESOURCES = "uploadZipResources";
     public static final String UPLOAD_ZIP_DB_RESOURCES = "uploadZipDbResources";
+    //缓存老师相关
+    public static final String LIST_ALL_TEACHER_PREFIX = "dlut:system:teacher";
+    //缓存奖项相关
+    public static final String LIST_CATEGORY_BY_SORT_AND_KIND_PREFIX = "dlut:system:category";
+    //缓存提示文本相关
+    public static final String LIST_INFO_BY_SORT_AND_BUTTON_PREFIX = "dlut:system:info";
 }
