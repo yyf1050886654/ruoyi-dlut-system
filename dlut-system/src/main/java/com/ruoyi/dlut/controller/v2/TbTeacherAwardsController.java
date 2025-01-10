@@ -6,9 +6,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.dlut.bo.GuideStudentDetailBo;
 import com.ruoyi.dlut.bo.PaperAndProjectBo;
+import com.ruoyi.dlut.dto.PublicServiceAwardsDto;
 import com.ruoyi.dlut.dto.TeacherAwardDetailDto;
-import com.ruoyi.dlut.vo.TeacherAwardDetailResp;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,19 +50,6 @@ public class TbTeacherAwardsController extends BaseController
     }
 
     /**
-     * 导出教师奖项详情列表
-     *//*
-    @PreAuthorize("@ss.hasPermi('dlut:teacherAwards:export')")
-    @Log(title = "教师奖项详情", businessType = BusinessType.EXPORT)
-    @PostMapping("/export")
-    public void export(HttpServletResponse response, TbTeacherAwards tbTeacherAwards)
-    {
-        List<TbTeacherAwards> list = tbTeacherAwardsService.selectTbTeacherAwardsList(tbTeacherAwards);
-        ExcelUtil<TbTeacherAwards> util = new ExcelUtil<TbTeacherAwards>(TbTeacherAwards.class);
-        util.exportExcel(response, list, "教师奖项详情数据");
-    }*/
-
-    /**
      * 获取教师奖项详情详细信息
      */
     @GetMapping(value = "/{id}")
@@ -80,6 +66,13 @@ public class TbTeacherAwardsController extends BaseController
     public AjaxResult add(@RequestBody TbTeacherAwards tbTeacherAwards)
     {
         return toAjax(tbTeacherAwardsService.insertTbTeacherAwards(tbTeacherAwards));
+    }
+
+    @PostMapping("/addPublicServiceAwards")
+    @Log(title = "新增公共服务", businessType = BusinessType.INSERT)
+    public AjaxResult addPublicServiceAwards(@RequestBody PublicServiceAwardsDto dto)
+    {
+        return toAjax(tbTeacherAwardsService.insertPublicServiceAwards(dto));
     }
 
     /**
@@ -143,6 +136,18 @@ public class TbTeacherAwardsController extends BaseController
         return AjaxResult.success(message);
     }
 
+    @Log(title = "公共服务上传", businessType = BusinessType.IMPORT)
+    @PostMapping("/importPublicService")
+    public AjaxResult importPublicService(MultipartFile file) throws Exception
+    {
+        ExcelUtil<PublicServiceAwardsDto> util = new ExcelUtil<>(PublicServiceAwardsDto.class);
+        List<PublicServiceAwardsDto> paperAndProjectBos = util.importExcel(file.getInputStream());
+        LoginUser loginUser = getLoginUser();
+        String operName = loginUser.getUsername();
+        String message = tbTeacherAwardsService.batchImportPublicService(paperAndProjectBos,operName);
+        return AjaxResult.success(message);
+    }
+
     @PostMapping("/importDataTemplate")
     public void importDataTemplate(HttpServletResponse response)
     {
@@ -162,5 +167,12 @@ public class TbTeacherAwardsController extends BaseController
     {
         ExcelUtil<PaperAndProjectBo> util = new ExcelUtil<PaperAndProjectBo>(PaperAndProjectBo.class);
         util.importTemplateExcel(response,"论文与项目");
+    }
+
+    @PostMapping("/importPublicServiceTemplate")
+    public void importPublicServiceTemplate(HttpServletResponse response)
+    {
+        ExcelUtil<PublicServiceAwardsDto> util = new ExcelUtil<PublicServiceAwardsDto>(PublicServiceAwardsDto.class);
+        util.importTemplateExcel(response,"公共服务");
     }
 }

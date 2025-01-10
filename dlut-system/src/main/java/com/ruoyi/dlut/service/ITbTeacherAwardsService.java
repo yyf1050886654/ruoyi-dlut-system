@@ -7,8 +7,8 @@ import com.ruoyi.dlut.bo.GuideStudentDetailBo;
 import com.ruoyi.dlut.bo.PaperAndProjectBo;
 import com.ruoyi.dlut.domain.TbTeacherAwards;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ruoyi.dlut.dto.PublicServiceAwardsDto;
 import com.ruoyi.dlut.dto.TeacherAwardDetailDto;
-import com.ruoyi.dlut.vo.TeacherAwardDetailResp;
 
 /**
  * 教师奖项详情Service接口
@@ -96,4 +96,19 @@ public interface ITbTeacherAwardsService extends IService<TbTeacherAwards> {
      */
     public String batchImportPaperAndProject(List<PaperAndProjectBo> dataList, String operName);
 
+    /**
+     * 批量导入公共服务
+     * @param dataList 用户数据列表
+     * @param operName 操作用户
+     * @return 结果
+     */
+    public String batchImportPublicService(List<PublicServiceAwardsDto> dataList, String operName);
+
+    /**
+     * 【特殊】新增公共服务详情
+     *
+     * @param dto 公共服务详情
+     * @return 结果
+     */
+    int insertPublicServiceAwards(PublicServiceAwardsDto dto);
 }

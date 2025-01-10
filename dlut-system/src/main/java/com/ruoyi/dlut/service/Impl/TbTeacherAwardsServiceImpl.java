@@ -10,9 +10,7 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.github.pagehelper.PageInfo;
 import com.ruoyi.common.constant.HttpStatus;
-import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.DateUtils;
@@ -24,13 +22,12 @@ import com.ruoyi.dlut.bo.PaperAndProjectBo;
 import com.ruoyi.dlut.constant.ImportantConstants;
 import com.ruoyi.dlut.domain.TbAwardsCategory;
 import com.ruoyi.dlut.domain.TbSysUser;
+import com.ruoyi.dlut.dto.PublicServiceAwardsDto;
 import com.ruoyi.dlut.dto.TeacherAwardDetailDto;
 import com.ruoyi.dlut.enums.competition.*;
 import com.ruoyi.dlut.service.ITbAwardsCategoryService;
 import com.ruoyi.dlut.service.ITbSysUserService;
-import com.ruoyi.dlut.service.TeacherService;
 import com.ruoyi.dlut.vo.TeacherAwardDetailResp;
-import com.ruoyi.system.service.ISysUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -393,6 +390,88 @@ public class TbTeacherAwardsServiceImpl extends ServiceImpl<TbTeacherAwardsMappe
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString();
+    }
+
+    @Override
+    public String batchImportPublicService(List<PublicServiceAwardsDto> dataList, String operName) {
+        if (dataList == null || dataList.isEmpty()) {
+            throw new ServiceException("导入数据不能为空！");
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder failureMsg = new StringBuilder();
+        for (PublicServiceAwardsDto publicServiceAwardsDto : dataList) {
+            try {
+                //检验是否存在用户
+                if (StringUtils.isEmpty(publicServiceAwardsDto.getUserName())){
+                    throw new ServiceException("请填写姓名");
+                }
+                //检验时长是否填写
+                if (publicServiceAwardsDto.getTime() == null){
+                    throw new ServiceException("请填写时长");
+                }
+                TbSysUser tbSysUser = tbSysUserService.selectUserByNickName(publicServiceAwardsDto.getUserName());
+                if (tbSysUser != null) {
+                    publicServiceAwardsDto.setUserId(Long.valueOf(tbSysUser.getUserName()));
+                    insertPublicServiceAwards(publicServiceAwardsDto);
+                    successNum++;
+                    successMsg.append("<br/>").append(successNum).append("、").
+                            append(publicServiceAwardsDto.getUserName()).append("老师导入成功");
+                }
+                else {
+                    failureNum++;
+                    failureMsg.append("<br/>").append(failureNum).append("、").append(publicServiceAwardsDto.getUserName()).append("老师不存在");
+                }
+            }
+            catch (Exception e) {
+                failureNum++;
+                String msg = "<br/>导入失败：";
+                failureMsg.append(msg).append(e.getMessage());
+                log.error(msg, e);
+            }
+        }
+        if (failureNum > 0) {
+            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
+            throw new ServiceException(failureMsg.toString());
+        }
+        else {
+            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
+        }
+        return successMsg.toString();
+    }
+
+    @Override
+    public int insertPublicServiceAwards(PublicServiceAwardsDto dto) {
+        if (dto == null || dto.getUserId() == null || StringUtils.isEmpty(dto.getUserName())){
+            throw new ServiceException("参数错误");
+        }
+        TbTeacherAwards tbTeacherAwards = new TbTeacherAwards();
+        //公共服务特殊
+        tbTeacherAwards.setAwardId(ImportantConstants.PUBLIC_SERVICE_AWARD_ID);
+        tbTeacherAwards.setRankPosition(new BigDecimal(1));
+        tbTeacherAwards.setWeight(new BigDecimal(1));
+        if (dto.getCredit() == null){
+            //未达标
+            if (dto.getTime().compareTo(new BigDecimal(30)) < 0){
+                dto.setCredit(new BigDecimal(-3));
+            }
+            //达标
+            else {
+                BigDecimal subtract = dto.getTime().divide(new BigDecimal(30), 2, RoundingMode.HALF_UP).subtract(new BigDecimal(1));
+                dto.setCredit(subtract);
+            }
+        }
+        if (dto.getCredit().compareTo(new BigDecimal(0)) < 0){
+            tbTeacherAwards.setProjectName("公共服务未达标");
+        }
+        else {
+            tbTeacherAwards.setProjectName("公共服务达标");
+        }
+        tbTeacherAwards.setUserId(dto.getUserId());
+        tbTeacherAwards.setUserName(dto.getUserName());
+        tbTeacherAwards.setRealCredit(dto.getCredit());
+        return insertTbTeacherAwards(tbTeacherAwards);
     }
 
     public BigDecimal calculateCompetition(GuideStudentDetailBo guideStudentDetailBo){
