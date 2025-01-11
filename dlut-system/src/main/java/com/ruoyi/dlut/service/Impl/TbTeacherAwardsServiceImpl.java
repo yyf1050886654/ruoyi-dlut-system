@@ -273,7 +273,7 @@ public class TbTeacherAwardsServiceImpl extends ServiceImpl<TbTeacherAwardsMappe
                     insertTbTeacherAwards(tbTeacherAwards);
                     successNum++;
                     successMsg.append("<br/>").append(successNum).append("、").
-                            append(sysUser.getUserName()).append("老师的").append(guideStudentDetailBo.getCompetitionName())
+                            append(guideStudentDetailBo.getUsername()).append("老师的").append(guideStudentDetailBo.getCompetitionName())
                             .append("(").append(guideStudentDetailBo.getLevel()).append(")")
                             .append("获得").append(realCredit).append("分。导入成功");
                 }
